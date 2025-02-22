@@ -106,7 +106,7 @@ export default function CallDetailsPage() {
               <div className="relative">
                 {call?.avatarImage ? (
                   <img
-                    src={call.avatarImage}
+                    src={call?.avatarImage}
                     alt={call?.avatarName || "Avatar"}
                     className="w-20 h-20 rounded-full object-cover"
                   />
@@ -185,7 +185,7 @@ export default function CallDetailsPage() {
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>Attention Required</AlertTitle>
           <AlertDescription>
-            {call?.analysis.alert_summary.description}
+            {call?.analysis.alert_summary?.description}
           </AlertDescription>
         </Alert>
       )}
@@ -200,7 +200,7 @@ export default function CallDetailsPage() {
           <div>
             <h3 className="font-semibold mb-2">Key Points</h3>
             <ul className="list-disc pl-6 space-y-2">
-              {call?.analysis.key_points.map((point, index) => (
+              {call?.analysis?.key_points && call?.analysis?.key_points.map((point, index) => (
                 <li key={index}>{point}</li>
               ))}
             </ul>
@@ -210,13 +210,13 @@ export default function CallDetailsPage() {
           <div>
             <h3 className="font-semibold mb-2">Timeline</h3>
             <div className="space-y-4">
-              {call.analysis.call_timeline.map((timepoint, index) => (
+              {call?.analysis?.call_timeline && call?.analysis?.call_timeline?.map((timepoint, index) => (
                 <div key={index} className="flex gap-4">
                   <div className="text-sm text-muted-foreground w-24">
-                    {timepoint.timestamp}
+                    {timepoint?.timestamp}
                   </div>
                   <div>
-                    {timepoint.discussion_points.map((point, i) => (
+                    {timepoint?.discussion_points && timepoint?.discussion_points?.map((point, i) => (
                       <p key={i}>{point}</p>
                     ))}
                   </div>
@@ -232,7 +232,7 @@ export default function CallDetailsPage() {
               <div className="p-4 bg-muted rounded-lg">
                 <div className="text-sm text-muted-foreground">Turns</div>
                 <div className="text-2xl font-semibold">
-                  {call.conversationMetrics.turnsCount}
+                  {call?.conversationMetrics?.turnsCount}
                 </div>
               </div>
               <div className="p-4 bg-muted rounded-lg">
@@ -240,7 +240,7 @@ export default function CallDetailsPage() {
                   Avg Response
                 </div>
                 <div className="text-2xl font-semibold">
-                  {call.conversationMetrics.avgResponseTime}s
+                  {call?.conversationMetrics?.avgResponseTime}s
                 </div>
               </div>
               <div className="p-4 bg-muted rounded-lg">
@@ -248,7 +248,7 @@ export default function CallDetailsPage() {
                   User Speaking
                 </div>
                 <div className="text-2xl font-semibold">
-                  {call.conversationMetrics.userSpeakingTime}s
+                  {call?.conversationMetrics?.userSpeakingTime}s
                 </div>
               </div>
               <div className="p-4 bg-muted rounded-lg">
@@ -256,7 +256,7 @@ export default function CallDetailsPage() {
                   Avatar Speaking
                 </div>
                 <div className="text-2xl font-semibold">
-                  {call.conversationMetrics.avatarSpeakingTime}s
+                  {call?.conversationMetrics?.avatarSpeakingTime}s
                 </div>
               </div>
             </div>
