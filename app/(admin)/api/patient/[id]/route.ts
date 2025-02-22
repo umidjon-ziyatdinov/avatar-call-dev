@@ -1,81 +1,76 @@
-// app/(admin)/api/patient/[id]/route.ts
-import { NextResponse } from 'next/server';
-import { put } from '@vercel/blob';
+import { auth } from "@/app/(auth)/auth";
+import { getPatientById, updatePatient } from "@/lib/db/queries";
+import { put } from "@vercel/blob";
 import * as bcrypt from 'bcrypt-ts';
-import { auth } from '@/app/(auth)/auth';
-import { 
-  getPatientById,
-  updatePatientAndUser,
-  deletePatientAndUser
-} from '@/lib/db/patient-user-queries';
 
-interface RouteParams {
-  params: {
-    id: string;
-  };
-}
+export async function PUT(request: Request,
+  { params }: {
+    params: Promise<{ id: string }>
+  }) {
 
-// GET /api/patient/[id]
-export async function GET(request: Request, { params }: RouteParams) {
-  try {
-    const session = await auth();
-    if (!session?.user?.id) {
-      return new Response('Unauthorized', { status: 401 });
-    }
-
-    const patient = await getPatientById(params.id);
-    if (!patient) {
-      return NextResponse.json(
-        { error: 'Patient not found' },
-        { status: 404 }
-      );
-    }
-
-    // Check if user has access to this patient
-    if (session.user.role !== 'admin' && session.user.role !== 'moderator' && 
-        patient.userId !== session.user.id) {
-      return new Response('Unauthorized', { status: 403 });
-    }
-
-    // Remove password from response
-    const { password: _, ...patientWithoutPassword } = patient;
-    return NextResponse.json(patientWithoutPassword);
-  } catch (error) {
-    console.error('Error in GET /api/patient/[id]:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch patient' },
-      { status: 500 }
-    );
+  const { id } = await params;
+  const session = await auth();
+  if (!id) {
+    return new Response('Patient not found', { status: 404 });
   }
-}
+  if (!session?.user?.id && session?.user.role !== 'moderator') {
+    return new Response('Unauthorized', { status: 401 });
+  }
 
-// PATCH /api/patient/[id]
-export async function PATCH(request: Request, { params }: RouteParams) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
-      return new Response('Unauthorized', { status: 401 });
-    }
-
-    // Check if patient exists and user has access
-    const existingPatient = await getPatientById(params.id);
-    if (!existingPatient) {
-      return NextResponse.json(
-        { error: 'Patient not found' },
-        { status: 404 }
-      );
-    }
-
-    if (session.user.role !== 'admin' && session.user.role !== 'moderator' && 
-        existingPatient.userId !== session.user.id) {
-      return new Response('Unauthorized', { status: 403 });
-    }
-
     const formData = await request.formData();
 
-    // Handle file upload if new profile picture is provided
-    const profilePicture = formData.get('profilePicture') as File;
-    let profilePictureUrl;
+    const existingPatient = await getPatientById({ id });
+    if (!existingPatient) {
+      return new Response('Patient not found', { status: 404 });
+    }
+    // Basic user fields
+
+    const email = (formData.get('email') || existingPatient.email) as string;
+    const password = formData.get('password') as string | null;
+    const name = (formData.get('name') || existingPatient.name) as string;
+
+    const profilePicture = formData.get('profilePicture') as File | null;
+
+
+    // Patient details fields
+    const patientDetails = {
+      about: formData.get('about') as string || '',
+      age: formData.get('age') as string || '',
+      sex: formData.get('sex') as string || '',
+      dateOfBirth: formData.get('dateOfBirth') as string || '',
+      location: formData.get('location') as string || '',
+      education: formData.get('education') as string || '',
+      work: formData.get('work') as string || '',
+      fallRisk: (formData.get('fallRisk') as string || 'no') as 'yes' | 'no',
+      promptAnswers: convertToRecord(formData.get('promptAnswers')),
+      likes: formData.get('likes') as string || '',
+      dislikes: formData.get('dislikes') as string || '',
+      symptoms: formData.get('symptoms') as string || '',
+    };
+
+    function convertToRecord(value: FormDataEntryValue | null): Record<string, string> | null {
+      if (value === null) {
+        return null;
+      }
+
+      if (typeof value === 'string') {
+        try {
+          return JSON.parse(value) as Record<string, string>;
+        } catch (error) {
+          // If it's not a valid JSON string, return null or handle the error as needed
+          console.error("Failed to parse promptAnswers as JSON:", error);
+          return null; // Or throw an error, or return a default object
+        }
+      }
+
+      return null;
+    }
+
+
+
+    // Handle profile picture upload
+    let profilePictureUrl = existingPatient.profilePicture;
     if (profilePicture) {
       const blob = await put(`profiles/${Date.now()}-${profilePicture.name}`, profilePicture, {
         access: 'public',
@@ -84,100 +79,87 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     }
 
     // Handle password update
-    const password = formData.get('password') as string;
-    let hashedPassword;
+    let hashedPassword = existingPatient.password;
     if (password) {
       hashedPassword = await bcrypt.hash(password, 10);
     }
 
-    // Get all fields
-    const updateData = {
-      email: formData.get('email') as string,
-      name: formData.get('name') as string,
-      password: hashedPassword,
-      profilePicture: profilePictureUrl,
-      about: formData.get('about') as string,
-      age: formData.get('age') as string,
-      sex: formData.get('sex') as string,
-      dateOfBirth: formData.get('dateOfBirth') as string,
-      location: formData.get('location') as string,
-      education: formData.get('education') as string,
-      work: formData.get('work') as string,
-      fallRisk: formData.get('fallRisk') as 'yes' | 'no',
-      likes: formData.get('likes') as string,
-      dislikes: formData.get('dislikes') as string,
-      symptoms: formData.get('symptoms') as string,
-      promptAnswers: formData.get('promptAnswers') 
-        ? JSON.parse(formData.get('promptAnswers') as string)
-        : undefined
-    };
+    // Check if any patient details were provided
+    const hasPatientDetails = Object.values(patientDetails).some(value => value !== '');
 
-    // Remove undefined values
-    Object.keys(updateData).forEach(key => {
-      if (updateData[key as keyof typeof updateData] === null || 
-          updateData[key as keyof typeof updateData] === undefined) {
-        delete updateData[key as keyof typeof updateData];
-      }
+    // Update user with all fields
+    const updatedUser = await updatePatient(id, {
+      ...existingPatient,
+      email,
+      password: hashedPassword,
+      name,
+      profilePicture: profilePictureUrl,
+      ...patientDetails
     });
 
-    const updatedPatient = await updatePatientAndUser(params.id, updateData);
-    if (!updatedPatient) {
-      return NextResponse.json(
-        { error: 'Failed to update patient' },
-        { status: 500 }
-      );
-    }
-
     // Remove password from response
-    const { password: _, ...patientWithoutPassword } = updatedPatient;
-    return NextResponse.json(patientWithoutPassword);
+    const { password: _, ...userWithoutPassword } = updatedUser;
+    return new Response(JSON.stringify(userWithoutPassword), {
+      headers: { 'Content-Type': 'application/json' },
+    });
   } catch (error) {
-    console.error('Error in PATCH /api/patient/[id]:', error);
-    return NextResponse.json(
-      { error: 'Failed to update patient' },
-      { status: 500 }
-    );
+    console.error('Failed to update user:', error);
+    return new Response('Failed to update user', { status: 500 });
   }
 }
 
-// DELETE /api/patient/[id]
-export async function DELETE(request: Request, { params }: RouteParams) {
-  try {
-    const session = await auth();
-    if (!session?.user?.id) {
-      return new Response('Unauthorized', { status: 401 });
-    }
+// export async function PATCH(
+//     request: Request
+// ) {
+//     try {
+//         const { searchParams } = new URL(request.url);
+//         const userId = searchParams.get('userId');
+//         const body = await request.json();
 
-    // Check if patient exists and user has access
-    const existingPatient = await getPatientById(params.id);
-    if (!existingPatient) {
-      return NextResponse.json(
-        { error: 'Patient not found' },
-        { status: 404 }
-      );
-    }
+//         // Validate the role
+//         if (body.role && !['admin', 'moderator', 'user'].includes(body.role)) {
+//             return NextResponse.json(
+//                 { error: "Invalid role specified" },
+//                 { status: 400 }
+//             );
+//         }
 
-    if (session.user.role !== 'admin' && session.user.role !== 'moderator' && 
-        existingPatient.userId !== session.user.id) {
-      return new Response('Unauthorized', { status: 403 });
-    }
+//         const updatedUser = await updateUser({ id: userId, ...body })
 
-    const deletedPatient = await deletePatientAndUser(params.id);
-    if (!deletedPatient) {
-      return NextResponse.json(
-        { error: 'Failed to delete patient' },
-        { status: 500 }
-      );
-    }
+//         return NextResponse.json(updatedUser);
+//     } catch (error) {
+//         console.error("Error updating user:", error);
+//         return NextResponse.json(
+//             { error: "Failed to update user" },
+//             { status: 500 }
+//         );
+//     }
+// }
+// export async function DELETE(request: Request) {
+//     const session = await auth();
 
-    // Remove password from response
-    const { password: _, ...patientWithoutPassword } = deletedPatient;
-    return NextResponse.json(patientWithoutPassword);
-  } catch (error) {
-    console.error('Error in DELETE /api/patient/[id]:', error);
-    return NextResponse.json(
-      { error: 'Failed to delete patient' },
-      { status: 500 }
-    );
-  }
-}
+//     if (!session?.user?.id || session.user.role !== 'admin') {
+//         return new Response('Unauthorized', { status: 401 });
+//     }
+
+//     try {
+//         const { searchParams } = new URL(request.url);
+//         const id = searchParams.get('id');
+
+//         if (!id) {
+//             return new Response('User ID is required', { status: 400 });
+//         }
+
+//         // Instead of hard deleting, we'll set isActive to false
+//         await updateUser({
+//             id,
+//             isActive: false,
+//             updatedAt: new Date()
+//         });
+
+//         return new Response('User deactivated successfully', { status: 200 });
+//     } catch (error) {
+//         console.error('Failed to delete user:', error);
+//         return new Response('Failed to delete user', { status: 500 });
+//     }
+// }
