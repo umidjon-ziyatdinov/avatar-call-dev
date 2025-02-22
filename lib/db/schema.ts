@@ -153,7 +153,7 @@ export type PromptTemplate = InferSelectModel<typeof promptTemplate>;
 
 
 
-export const PatienaAvatars = pgTable('patientAvatars', {
+export const patientAvatars = pgTable('patientAvatars', {
   // Primary key and metadata
   id: uuid('id').primaryKey().notNull().defaultRandom(),
   createdAt: timestamp('createdAt', { mode: 'date' }).notNull().defaultNow(),
@@ -172,8 +172,9 @@ export const PatienaAvatars = pgTable('patientAvatars', {
 });
 
 // Helper types
-export type PatientAvatars = InferSelectModel<typeof PatienaAvatars>;
-
+export type PatientAvatars = InferSelectModel<typeof patientAvatars>;
+export type NewPatienAvatars = Omit<PatientAvatars, 'id' | 'createdAt '>;
+export type UpdatePatientAvatars = Partial<Omit<PatientAvatars, 'id' | 'createdAt'>>;
 export const call = pgTable('Call', {
   // Primary key and metadata
   id: uuid('id').primaryKey().notNull().defaultRandom(),

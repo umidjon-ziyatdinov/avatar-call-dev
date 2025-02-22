@@ -22,7 +22,9 @@ import {
   NewCall,
   NewPatient,
   patient,
-  UpdatePatient
+  UpdatePatient,
+  NewPatienAvatars,
+  patientAvatars
 } from './schema';
 
 import { auth } from '@/app/(auth)/auth';
@@ -615,6 +617,22 @@ export async function createPatient(data: NewPatient) {
     throw new Error('Failed to create user');
   }
 }
+export async function createPatientAvatar(data: NewPatienAvatars) {
+  try {
+    const [newUser] = await db
+      .insert(patientAvatars)
+      .values({
+        ...data,
+      })
+      .returning();
+
+    return newUser;
+  } catch (error) {
+    console.error('Error creating user:', error);
+    throw new Error('Failed to create user');
+  }
+}
+
 
 
 export async function getUserById({ id }: { id: string }) {
