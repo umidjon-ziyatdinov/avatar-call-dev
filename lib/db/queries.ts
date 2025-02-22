@@ -502,6 +502,8 @@ export async function getAllCallsByUserId(id: string) {
       technicalDetails: call.technicalDetails,
       errorLogs: call.errorLogs,
       metadata: call.metadata,
+      analysis: call.analysis,
+      prompt: call.prompt,
       // Avatar fields
       avatarName: avatar.name,
       avatarRole: avatar.role,

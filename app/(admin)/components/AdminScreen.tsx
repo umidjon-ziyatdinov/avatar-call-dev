@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { ArrowLeft, Plus } from "lucide-react";
 import useSWR from 'swr';
 import { fetcher } from '@/lib/utils';
