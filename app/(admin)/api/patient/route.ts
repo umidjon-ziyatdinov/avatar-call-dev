@@ -15,6 +15,15 @@ import { User, user } from '@/lib/db/schema';
 import * as bcrypt from 'bcrypt-ts';
 import { NextResponse } from 'next/server';
 
+// Configure the API route options
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '20mb'
+    },
+    responseLimit: '20mb'
+  }
+};
 export async function POST(request: Request) {
   const session = await auth();
 

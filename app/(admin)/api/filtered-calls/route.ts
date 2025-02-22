@@ -1,5 +1,5 @@
 import { auth } from "@/app/(auth)/auth";
-import { createNewCall, getAllCallsByUserId, getCallByUserAndAvatarId } from "@/lib/db/queries";
+import { createNewCall, getCallByUserAndAvatarId, getModeratorCalls } from "@/lib/db/queries";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -40,7 +40,7 @@ export async function GET(request: Request) {
                     total: calls.length
                 });
             }
-            const calls = await getAllCallsByUserId(session.user.id);
+            const calls = await getModeratorCalls({ userId: session.user.id });
             return NextResponse.json({
                 success: true,
                 data: calls,

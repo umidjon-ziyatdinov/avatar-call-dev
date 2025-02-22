@@ -509,7 +509,7 @@ export async function getCallByUserAndAvatarId({ id, avatarId }: { id: string, a
     throw new Error('Failed to get call');
   }
 }
-export async function getAllCallsByUserId(id: string) {
+export async function getAllCallsForAdmin() {
   try {
     const calls = await db.select({
       id: call.id,
@@ -528,11 +528,21 @@ export async function getAllCallsByUserId(id: string) {
       metadata: call.metadata,
       analysis: call.analysis,
       prompt: call.prompt,
+      patientName: patient.name,
+      patientEmail: patient.email,
+      patientAge: patient.age,
+      patientSex: patient.sex,
+      patientLocation: patient.location,
+      patientEducation: patient.education,
+      patientWork: patient.work,
+
+      patientProfilePicture: patient.profilePicture,
+      patientCreatedAt: patient.createdAt,
       // Avatar fields
       avatarName: avatar.name,
       avatarRole: avatar.role,
       avatarImage: avatar.avatarImage
-    }).from(call).leftJoin(avatar, eq(call.avatarId, avatar.id)).where(eq(call.userId, id));
+    }).from(call).leftJoin(avatar, eq(call.avatarId, avatar.id)).leftJoin(patient, eq(call.userId, patient.id));
     return calls;
   } catch (error) {
     console.error('Error getting all avatars:', error);
@@ -545,6 +555,16 @@ export async function getAllAvatars() {
   try {
     const avatars = await db.select().from(avatar);
     return avatars;
+  } catch (error) {
+    console.error('Error getting all avatars:', error);
+    throw new Error('Failed to get all avatars');
+  }
+}
+
+export async function getAllCalls() {
+  try {
+    const calls = await db.select().from(call);
+    return calls;
   } catch (error) {
     console.error('Error getting all avatars:', error);
     throw new Error('Failed to get all avatars');
@@ -899,7 +919,7 @@ export async function getModeratorCalls(filters: CallFilters = {}) {
     const query = db
       .select({
         // Call details
-        callId: call.id,
+        id: call.id,
         duration: call.duration,
         status: call.status,
         createdAt: call.createdAt,
@@ -921,6 +941,17 @@ export async function getModeratorCalls(filters: CallFilters = {}) {
         userProfilePicture: user.profilePicture,
         userCreatedAt: user.createdAt,
         userIsActive: user.isActive,
+        // Patient details
+        patientId: patient.id,
+        patientName: patient.name,
+        patientEmail: patient.email,
+        patientAge: patient.age,
+        patientSex: patient.sex,
+        patientLocation: patient.location,
+        patientEducation: patient.education,
+        patientWork: patient.work,
+        patientProfilePicture: patient.profilePicture,
+        patientCreatedAt: patient.createdAt,
         // Avatar details
         avatarId: avatar.id,
         avatarName: avatar.name,
@@ -936,15 +967,13 @@ export async function getModeratorCalls(filters: CallFilters = {}) {
         avatarOpenaiModel: avatar.openaiModel
       })
       .from(call)
-      .innerJoin(user, eq(call.userId, user.id))
+      .innerJoin(patient, eq(call.userId, patient.id))
+      .innerJoin(user, eq(patient.userId, user.id))
       .innerJoin(avatar, eq(call.avatarId, avatar.id))
       .where(
         and(
-
-          userId ? eq(call.userId, userId) : undefined,
-
+          userId ? eq(user.id, userId) : undefined, // Changed to filter on user.id
           avatarId ? eq(call.avatarId, avatarId) : undefined,
-
           status ? eq(call.status, status as "active" | "completed" | "failed" | "missed") : undefined,
           // Date range filter
           startDate ? sql`DATE(${call.createdAt}) >= ${startDate}` : undefined,
@@ -956,6 +985,8 @@ export async function getModeratorCalls(filters: CallFilters = {}) {
             ? or(
               ilike(user.name, `%${search}%`),
               ilike(user.email, `%${search}%`),
+              ilike(patient.name, `%${search}%`),
+              ilike(patient.email, `%${search}%`),
               ilike(avatar.name, `%${search}%`),
               ilike(avatar.role, `%${search}%`)
             )
@@ -966,7 +997,6 @@ export async function getModeratorCalls(filters: CallFilters = {}) {
 
     const calls = await query;
     return calls;
-
   } catch (error) {
     console.error('Error in getCalls:', error);
     throw new Error('Failed to fetch calls');

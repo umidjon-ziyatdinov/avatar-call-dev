@@ -56,9 +56,9 @@ export default function CallDetailsPage() {
             {/* User Details */}
             <div className="flex-1 flex flex-row md:flex-row items-center gap-6">
               <div className="relative">
-                <Image
-                  src={call?.patientProfilePicture ?? "/default-avatar.png"}
-                  alt={call?.name || "Patient"}  // Also changed this to match your data structure
+              <Image
+                  src={call?.profilePicture || ""}
+                  alt={call?.patientName || "Patient"}
                   width={80}
                   height={80}
                   className="rounded-full object-cover"
@@ -161,7 +161,7 @@ export default function CallDetailsPage() {
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>Attention Required</AlertTitle>
           <AlertDescription>
-            {call?.analysis.alert_summary.description}
+            {call?.analysis?.alert_summary?.description}
           </AlertDescription>
         </Alert>
       )}
@@ -176,7 +176,7 @@ export default function CallDetailsPage() {
           <div>
             <h3 className="font-semibold mb-2">Key Points</h3>
             <ul className="list-disc pl-6 space-y-2">
-              {call?.analysis.key_points.map((point, index) => (
+              {call?.analysis?.key_points && call?.analysis?.key_points?.map((point, index) => (
                 <li key={index}>{point}</li>
               ))}
             </ul>
@@ -186,13 +186,13 @@ export default function CallDetailsPage() {
           <div>
             <h3 className="font-semibold mb-2">Timeline</h3>
             <div className="space-y-4">
-              {call.analysis.call_timeline.map((timepoint, index) => (
+              {call?.analysis?.call_timeline?.map((timepoint, index) => (
                 <div key={index} className="flex gap-4">
                   <div className="text-sm text-muted-foreground w-24">
-                    {timepoint.timestamp}
+                    {timepoint?.timestamp}
                   </div>
                   <div>
-                    {timepoint.discussion_points.map((point, i) => (
+                    {timepoint?.discussion_points && timepoint?.discussion_points?.map((point, i) => (
                       <p key={i}>{point}</p>
                     ))}
                   </div>
