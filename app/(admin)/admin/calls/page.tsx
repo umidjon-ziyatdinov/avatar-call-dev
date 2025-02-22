@@ -1,7 +1,10 @@
+
 // @ts-nocheck
-"use client";
-import React, { useState } from 'react';
+'use client';
+import React, { useEffect, useState } from 'react';
+import useSWR from 'swr';
 import { format } from 'date-fns';
+
 import {
   Card,
   CardContent,
@@ -23,89 +26,52 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { Input } from "@/components/ui/input";
 import {
-  AlertTriangle,
-  PhoneCall,
-  AlertOctagon,
   AlertCircle,
-  ArrowRightCircle,
-  MessageSquareWarning,
-  FileWarning,
+  CheckCircle2,
   Clock,
+  PhoneCall,
+  PhoneMissed,
 } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useRouter } from 'next/navigation';
-import useSWR from 'swr';
 import { fetcher } from '@/lib/utils';
+import { useRouter } from 'next/navigation';
 
-const severityConfig = {
-  low: {
-    icon: <AlertCircle className="w-4 h-4" />,
-    color: "bg-yellow-100 text-yellow-800",
-  },
-  medium: {
-    icon: <AlertTriangle className="w-4 h-4" />,
-    color: "bg-orange-100 text-orange-800",
-  },
-  high: {
-    icon: <AlertOctagon className="w-4 h-4" />,
-    color: "bg-red-100 text-red-800",
-  }
+const statusIcons = {
+  active: <Clock className="w-4 h-4 text-yellow-500" />,
+  completed: <CheckCircle2 className="w-4 h-4 text-green-500" />,
+  failed: <AlertCircle className="w-4 h-4 text-red-500" />,
+  missed: <PhoneMissed className="w-4 h-4 text-gray-500" />
 };
-const AlertSummaryContent = ({ summary }) => (
-    <div className="p-2 max-w-md space-y-3">
-      <div className="flex items-center gap-2 text-sm">
-        <Clock className="w-4 h-4 text-gray-500" />
-        <span className="font-medium">Timestamp:</span>
-        <span>{summary.timestamp}</span>
-      </div>
-      
-      <div className="flex items-center gap-2 text-sm">
-        <FileWarning className="w-4 h-4 text-gray-500" />
-        <span className="font-medium">Alert Type:</span>
-        <span>{summary.alert_type}</span>
-      </div>
-      
-      <div className="space-y-2">
-        <div className="flex items-start gap-2 text-sm">
-          <MessageSquareWarning className="w-4 h-4 text-gray-500 mt-1" />
-          <div>
-            <div className="font-medium">Description:</div>
-            <p className="text-sm text-gray-700">{summary.description}</p>
-          </div>
-        </div>
-      </div>
-      
-      <div className="space-y-2">
-        <div className="flex items-start gap-2 text-sm">
-          <ArrowRightCircle className="w-4 h-4 text-gray-500 mt-1" />
-          <div>
-            <div className="font-medium">Recommended Follow-up:</div>
-            <p className="text-sm text-gray-700">{summary.recommended_followup}</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
 
 export default function CallHistory() {
   const router = useRouter();
-  const [avatarFilter, setAvatarFilter] = useState("all");
+  const [avatarFilter, setAvatarFilter] = useState("all"); // Changed initial value to "all"
   const [searchQuery, setSearchQuery] = useState("");
-  
+  const [calls, setCalls] = useState([])
   const { data, error, isLoading } = useSWR('/api/calls', fetcher);
-  const calls = data?.data;
 
-  const filteredCalls = calls?.filter(call => {
-    const matchesAvatar = avatarFilter === "all" || call.metadata.avatarName === avatarFilter;
+
+  useEffect(() => {
+    if(data) setCalls(data?.data)
+      console.log('data', data)
+    }, [data])
+    
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col w-full h-[50vh] items-center justify-center space-y-4">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        <h2>Loading....</h2>
+      </div>
+    );
+  }
+
+
+  const filteredCalls =  calls?.filter(call => {
+    const matchesAvatar = avatarFilter === "all" || call.metadata.avatarName === avatarFilter; // Updated condition
     const matchesSearch = !searchQuery || 
       call.metadata.avatarName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       call.userId.toLowerCase().includes(searchQuery.toLowerCase());
@@ -116,25 +82,6 @@ export default function CallHistory() {
 
   const handleRowClick = (callId) => {
     router.push(`/admin/calls/${callId}`);
-  };
-
-  const SeverityBadge = ({ severity, summary }) => {
-    const config = severityConfig[severity.toLowerCase()];
-    return (
-        <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger>
-            <div className={`flex items-center gap-1 px-2 py-1 rounded-full ${config.color}`}>
-              {config.icon}
-              <span className="text-sm font-medium">{severity}</span>
-            </div>
-          </TooltipTrigger>
-          <TooltipContent side="left" className="bg-white border shadow-lg rounded-lg">
-            <AlertSummaryContent summary={summary} />
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-    );
   };
 
   if (error) return (
@@ -183,11 +130,11 @@ export default function CallHistory() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>Status</TableHead>
                   <TableHead>Avatar</TableHead>
-                  <TableHead>Date</TableHead>
                   <TableHead>Duration</TableHead>
-                  <TableHead>Analysis Status</TableHead>
-                  <TableHead>Flags</TableHead>
+                  <TableHead className="hidden md:table-cell">Quality</TableHead>
+                  <TableHead>Date</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -208,37 +155,31 @@ export default function CallHistory() {
                     onClick={() => handleRowClick(call.id)}
                   >
                     <TableCell>
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full overflow-hidden">
-                          <img 
-                            src={call.avatarImage || "/api/placeholder/40/40"} 
-                            alt={call.metadata.avatarName}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                        <span className="font-medium">{call.metadata.avatarName}</span>
+                      <div className="flex items-center gap-2">
+                        {statusIcons[call.status]}
+                        <span className="hidden md:inline">
+                          {call.status.charAt(0).toUpperCase() + call.status.slice(1)}
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {call.metadata.avatarName}
+                    </TableCell>
+                    <TableCell>
+                      {Math.floor(call.duration / 60)}m {call.duration % 60}s
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell">
+                      <div className="flex gap-2">
+                        <Badge variant={call.qualityMetrics.audioQuality > 80 ? "success" : "destructive"}>
+                          Audio: {call.qualityMetrics.audioQuality}%
+                        </Badge>
+                        <Badge variant={call.qualityMetrics.videoQuality > 80 ? "success" : "destructive"}>
+                          Video: {call.qualityMetrics.videoQuality}%
+                        </Badge>
                       </div>
                     </TableCell>
                     <TableCell>
                       {format(new Date(call.createdAt), 'MMM d, yyyy HH:mm')}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-1">
-                        <span>{Math.floor(call.duration / 60)}m {call.duration % 60}s</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={call.analysisComplete ? "success" : "secondary"}>
-                        {call.analysisComplete ? "Completed" : "Processing"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      {call.analysis.is_flagged && (
-                        <SeverityBadge 
-                          severity="high" 
-                          summary={call.analysis.alert_summary} 
-                        />
-                      )}
                     </TableCell>
                   </TableRow>
                 ))}

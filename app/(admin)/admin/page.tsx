@@ -78,7 +78,7 @@ export default function AvatarAdminPage() {
     data: avatarList,
     isLoading,
     mutate,
-  } = useSWR<Array<Avatar>>("/admin/api/avatar", fetcher, {
+  } = useSWR<Array<Avatar>>("/api/avatar", fetcher, {
     fallbackData: [],
   });
 
