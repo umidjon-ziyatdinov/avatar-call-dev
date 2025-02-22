@@ -10,6 +10,14 @@ import {
   LayoutDashboardIcon,
   MessagesSquareIcon,
   BoxIcon,
+  ShieldCheckIcon,
+  UserCogIcon,
+  Users2Icon,
+  HistoryIcon,
+  HeartPulseIcon,
+  PhoneCallIcon,
+  Sparkles,
+  User,
 } from "lucide-react";
 
 import {
@@ -27,6 +35,7 @@ type SidebarItemType = {
   icon: React.ReactNode;
 };
 
+
 const AdminSidebarGroups = [
   {
     items: [
@@ -43,7 +52,7 @@ const AdminSidebarGroups = [
       {
         label: "Avatar Characters",
         href: "/admin",
-        icon: <LayoutDashboardIcon className="w-4 h-4" />,
+        icon: <User className="w-4 h-4" />, 
       },
     ],
   },
@@ -53,24 +62,22 @@ const AdminSidebarGroups = [
       {
         label: "Super Admins",
         href: "/super-admin",
-        icon: <UsersIcon className="w-4 h-4" />,
+        icon: <ShieldCheckIcon className="w-4 h-4" />,
       },
       {
         label: "Moderators",
         href: "/moderator",
-        icon: <UsersIcon className="w-4 h-4" />,
+        icon: <UserCogIcon className="w-4 h-4" />,
       },
-
       {
-        label: "Patients",
-        href: "/patient",
-        icon: <UsersIcon className="w-4 h-4" />,
+        label: "Users",
+        href: "/users",
+        icon: <Users2Icon className="w-4 h-4" />,
       },
-
       {
         label: "Call Logs",
         href: "/admin/calls",
-        icon: <MessagesSquareIcon className="w-4 h-4" />,
+        icon: <HistoryIcon className="w-4 h-4" />,
       },
     ],
   },
@@ -92,7 +99,7 @@ const ModeratorSidebarGroups = [
       {
         label: "Avatar Characters",
         href: "/admin",
-        icon: <LayoutDashboardIcon className="w-4 h-4" />,
+        icon: <User className="w-4 h-4" />, 
       },
     ],
   },
@@ -102,12 +109,12 @@ const ModeratorSidebarGroups = [
       {
         label: "Patients",
         href: "/patient",
-        icon: <UsersIcon className="w-4 h-4" />,
+        icon: <HeartPulseIcon className="w-4 h-4" />,
       },
       {
         label: "Call History",
         href: "/calls",
-        icon: <MessagesSquareIcon className="w-4 h-4" />,
+        icon: <PhoneCallIcon className="w-4 h-4" />,
       },
     ],
   },
