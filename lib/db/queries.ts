@@ -2,7 +2,7 @@
 import 'server-only';
 
 import { genSaltSync, hashSync } from 'bcrypt-ts';
-import { and, asc, desc, eq, gt, gte, inArray, isNull, or, like, ilike } from 'drizzle-orm';
+import { and, asc, desc, eq, gt, gte, inArray, isNull, or, sql, ilike } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 
@@ -874,8 +874,6 @@ export async function getAdminUser(passcode: number) {
 
 
 
-
-
 interface CallFilters {
   userId?: string;
   avatarId?: string;
@@ -886,7 +884,7 @@ interface CallFilters {
   search?: string; // For searching across user name, avatar name, etc.
 }
 
-export async function getCalls(filters: CallFilters = {}) {
+export async function getModeratorCalls(filters: CallFilters = {}) {
   try {
     const {
       userId,
@@ -915,7 +913,6 @@ export async function getCalls(filters: CallFilters = {}) {
         analysis: call.analysis,
         errorLogs: call.errorLogs,
         metadata: call.metadata,
-        
         // User details
         userId: user.id,
         userName: user.name,
@@ -924,7 +921,6 @@ export async function getCalls(filters: CallFilters = {}) {
         userProfilePicture: user.profilePicture,
         userCreatedAt: user.createdAt,
         userIsActive: user.isActive,
-        
         // Avatar details
         avatarId: avatar.id,
         avatarName: avatar.name,
@@ -944,25 +940,25 @@ export async function getCalls(filters: CallFilters = {}) {
       .innerJoin(avatar, eq(call.avatarId, avatar.id))
       .where(
         and(
-          // User filter
+
           userId ? eq(call.userId, userId) : undefined,
-          // Avatar filter
+
           avatarId ? eq(call.avatarId, avatarId) : undefined,
-          // Status filter
-          status ? eq(call.status, status) : undefined,
+
+          status ? eq(call.status, status as "active" | "completed" | "failed" | "missed") : undefined,
           // Date range filter
-          startDate ? sql`${call.createdAt} >= ${startDate}` : undefined,
-          endDate ? sql`${call.createdAt} <= ${endDate}` : undefined,
+          startDate ? sql`DATE(${call.createdAt}) >= ${startDate}` : undefined,
+          endDate ? sql`DATE(${call.createdAt}) <= ${endDate}` : undefined,
           // Duration filter
           duration ? sql`${call.duration} >= ${duration}` : undefined,
           // Search across multiple fields
           search
             ? or(
-                ilike(user.name, `%${search}%`),
-                ilike(user.email, `%${search}%`),
-                ilike(avatar.name, `%${search}%`),
-                ilike(avatar.role, `%${search}%`)
-              )
+              ilike(user.name, `%${search}%`),
+              ilike(user.email, `%${search}%`),
+              ilike(avatar.name, `%${search}%`),
+              ilike(avatar.role, `%${search}%`)
+            )
             : undefined
         )
       )
