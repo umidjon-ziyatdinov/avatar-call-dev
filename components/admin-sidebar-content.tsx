@@ -57,7 +57,7 @@ const ModeratorSidebarGroups = [
     items: [
       {
         label: 'Patients',
-        href: '/users',
+        href: '/patient',
         icon: <UsersIcon className="w-4 h-4" />
       },
       {

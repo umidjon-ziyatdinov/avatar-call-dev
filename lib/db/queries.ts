@@ -19,7 +19,10 @@ import {
   avatar, type Avatar,
   Call,
   call,
-  NewCall
+  NewCall,
+  NewPatient,
+  patient,
+  UpdatePatient
 } from './schema';
 
 import { auth } from '@/app/(auth)/auth';
@@ -571,6 +574,25 @@ export async function createUser(userData: CreateUserInput) {
   }
 }
 
+export async function createPatient(data: NewPatient) {
+  try {
+    const [newUser] = await db
+      .insert(patient)
+      .values({
+        ...data,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      })
+      .returning();
+
+    return newUser;
+  } catch (error) {
+    console.error('Error creating user:', error);
+    throw new Error('Failed to create user');
+  }
+}
+
+
 export async function getUserById({ id }: { id: string }) {
   console.log('userId', id)
   try {
@@ -586,6 +608,23 @@ export async function getUserById({ id }: { id: string }) {
     throw new Error('Failed to get user');
   }
 }
+
+export async function getPatientById({ id }: { id: string }) {
+
+  try {
+    const [foundUser] = await db
+      .select()
+      .from(patient)
+      .where(eq(patient.id, id))
+      .limit(1);
+
+    return foundUser || null;
+  } catch (error) {
+    console.error('Error getting user by id:', error);
+    throw new Error('Failed to get user');
+  }
+}
+
 
 export async function getUserByEmail({ email }: { email: string }) {
   try {
@@ -619,6 +658,22 @@ export async function getAllUsers({
   }
 }
 
+export async function getAllPAtients(userId: string) {
+  try {
+    const users = await db
+      .select()
+      .from(patient)
+      .where(eq(patient.userId, userId))
+
+
+      ;
+    return users;
+  } catch (error) {
+    console.error('Error getting all users:', error);
+    throw new Error('Failed to get users');
+  }
+}
+
 export async function updateUser({
   id,
   ...userData
@@ -640,6 +695,26 @@ export async function updateUser({
   }
 }
 
+export async function updatePatient(id: string, {
+
+  ...patientData
+}: UpdatePatient) {
+  try {
+    const [updatedUser] = await db
+      .update(patient)
+      .set({
+        ...patientData,
+        updatedAt: new Date()
+      })
+      .where(eq(patient.id, id))
+      .returning();
+
+    return updatedUser;
+  } catch (error) {
+    console.error('Error updating user:', error);
+    throw new Error('Failed to update user');
+  }
+}
 export async function deleteUserById({ id }: { id: string }) {
   try {
     const [deletedUser] = await db

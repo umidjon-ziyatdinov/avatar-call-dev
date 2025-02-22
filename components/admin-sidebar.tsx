@@ -45,7 +45,7 @@ export function AdminSidebar({ user }: { user: User | undefined }) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <AdminSidebarContent  />
+        <AdminSidebarContent  role={user?.role} />
       </SidebarContent>
       {/* <SidebarFooter>{user && <SidebarUserNav user={user} />}</SidebarFooter> */}
     </Sidebar>

@@ -17,7 +17,8 @@ import useSWR from "swr";
 
 import { Avatar } from '@/lib/db/schema';
 import Image from 'next/image';
-import AdminScreen from '../components/AdminScreen';
+import AdminScreen from './components/AdminScreen';
+
 
 
 

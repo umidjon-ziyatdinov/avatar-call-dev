@@ -71,6 +71,7 @@ export const patient = pgTable('Patient', {
   userId: uuid('userId').notNull().references(() => user.id, { onDelete: 'cascade' }),
   about: text('about').default(''),
   age: varchar('age', { length: 3 }).default(''),
+  name: varchar('name', { length: 128 }).notNull().default('Unknown'),
   sex: varchar('sex', { length: 10 }).default(''),
   email: varchar('email', { length: 64 }).notNull().unique(),
   password: varchar('password', { length: 64 }),
@@ -78,6 +79,7 @@ export const patient = pgTable('Patient', {
   location: varchar('location', { length: 128 }).default(''),
   education: varchar('education', { length: 128 }).default(''),
   work: varchar('work', { length: 128 }).default(''),
+  profilePicture: text('profilePicture').default(''),
   fallRisk: varchar('fallRisk', { enum: ['yes', 'no'] }).default('no'),
   promptAnswers: json('promptAnswers').$type<Record<string, string>>().default({}),
   likes: text('likes').default(''),
@@ -170,7 +172,7 @@ export const call = pgTable('Call', {
 
   recordingUrl: text('recordingUrl'),
   transcriptUrl: text('transcriptUrl').default(''),
-
+  prompt: text('prompt').default(''),
   // Call metrics
   qualityMetrics: jsonb('qualityMetrics').default({
     audioQuality: 100,
@@ -194,6 +196,9 @@ export const call = pgTable('Call', {
     networkType: '',
     osVersion: ''
   }),
+  // Technical details
+  analysis: jsonb('analysis').default({
+  }),
 
   // Error tracking
   errorLogs: jsonb('errorLogs').$type<{
@@ -210,7 +215,6 @@ export const call = pgTable('Call', {
 export type Call = InferSelectModel<typeof call>;
 export type NewCall = Omit<Call, 'id' | 'createdAt '>;
 export type UpdateCall = Partial<Omit<Call, 'id' | 'createdAt'>>;
-
 export const chat = pgTable('Chat', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
   createdAt: timestamp('createdAt').notNull(),
