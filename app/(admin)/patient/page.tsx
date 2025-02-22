@@ -42,20 +42,11 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { PatientCreateDialog } from "../components/PatientCreateForm";
+import { PatientEditDialog } from "../components/PatientsEditDialog";
+import { Patient } from "@/lib/db/schema";
 
-// Define Patient interface based on the API response
-interface Patient {
-  id: string;
-  name: string;
-  email: string;
-  profilePicture?: string;
-  age?: string;
-  sex?: string;
-  location?: string;
-  fallRisk?: 'yes' | 'no';
-  createdAt: Date;
-  userIsActive?: boolean;
-}
+
 
 interface PatientFormData {
   name: string;
@@ -321,95 +312,16 @@ export default function PatientManagementPage() {
                 Add Patient
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[625px]">
-              <form onSubmit={handleCreatePatient}>
+            <DialogContent className=" h-full sm:max-h-[90vh] sm:max-w-[1000px] overflow-y-auto">
+        
                 <DialogHeader>
                   <DialogTitle>Create New Patient</DialogTitle>
                   <DialogDescription>
                     Add a new patient to the system.
                   </DialogDescription>
                 </DialogHeader>
-                <div className="grid grid-cols-2 gap-4 py-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="name">Name</Label>
-                    <Input
-                      id="name"
-                      value={newPatientData.name}
-                      onChange={(e) => setNewPatientData({...newPatientData, name: e.target.value})}
-                      required
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={newPatientData.email}
-                      onChange={(e) => setNewPatientData({...newPatientData, email: e.target.value})}
-                      required
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="password">Password</Label>
-                    <Input
-                      id="password"
-                      type="password"
-                      value={newPatientData.password}
-                      onChange={(e) => setNewPatientData({...newPatientData, password: e.target.value})}
-                      required
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="age">Age</Label>
-                    <Input
-                      id="age"
-                      type="text"
-                      value={newPatientData.age}
-                      onChange={(e) => setNewPatientData({...newPatientData, age: e.target.value})}
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="sex">Sex</Label>
-                    <Input
-                      id="sex"
-                      value={newPatientData.sex}
-                      onChange={(e) => setNewPatientData({...newPatientData, sex: e.target.value})}
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="location">Location</Label>
-                    <Input
-                      id="location"
-                      value={newPatientData.location}
-                      onChange={(e) => setNewPatientData({...newPatientData, location: e.target.value})}
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="fallRisk">Fall Risk</Label>
-                    <select
-                      id="fallRisk"
-                      value={newPatientData.fallRisk}
-                      onChange={(e) => setNewPatientData({...newPatientData, fallRisk: e.target.value as 'yes' | 'no'})}
-                      className="w-full p-2 border rounded"
-                    >
-                      <option value="no">No</option>
-                      <option value="yes">Yes</option>
-                    </select>
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="profilePicture">Profile Picture</Label>
-                    <Input
-                      id="profilePicture"
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => setProfilePicture(e.target.files?.[0] || null)}
-                    />
-                  </div>
-                </div>
-                <DialogFooter>
-                  <Button type="submit">Create Patient</Button>
-                </DialogFooter>
-              </form>
+           <PatientCreateDialog  onClose={() => {setIsCreateDialogOpen(false); mutate() }}/>
+        
             </DialogContent>
           </Dialog>
         </div>
@@ -496,109 +408,19 @@ export default function PatientManagementPage() {
       )}
 
       {/* Update Dialog */}
-      <Dialog open={isUpdateDialogOpen} onOpenChange={setIsUpdateDialogOpen}>
-        <DialogContent className="sm:max-w-[625px]">
-          <form onSubmit={handleUpdatePatient}>
+     {selectedPatient &&  <Dialog open={isUpdateDialogOpen} onOpenChange={setIsUpdateDialogOpen}>
+        <DialogContent className="w-full h-full sm:max-h-[90vh] sm:max-w-[900px]">
+        
             <DialogHeader>
               <DialogTitle>Update Patient</DialogTitle>
               <DialogDescription>
                 Update patient information.
               </DialogDescription>
             </DialogHeader>
-            <div className="grid grid-cols-2 gap-4 py-4">
-              <div className="grid gap-2">
-                <Label htmlFor="update-name">Name</Label>
-                <Input
-                  id="update-name"
-                  value={updatePatientData.name}
-                  onChange={(e) => setUpdatePatientData({...updatePatientData, name: e.target.value})}
-                  required
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="update-email">Email</Label>
-                <Input
-                  id="update-email"
-                  type="email"
-                  value={updatePatientData.email}
-                  onChange={(e) => setUpdatePatientData({...updatePatientData, email: e.target.value})}
-                  required
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="update-password">
-                  New Password
-                  <span className="text-sm text-muted-foreground ml-2">(Leave blank to keep current)</span>
-                </Label>
-                <Input
-                  id="update-password"
-                  type="password"
-                  value={updatePatientData.password}
-                  onChange={(e) => setUpdatePatientData({...updatePatientData, password: e.target.value})}
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="update-age">Age</Label>
-                <Input
-                  id="update-age"
-                  value={updatePatientData.age}
-                  onChange={(e) => setUpdatePatientData({...updatePatientData, age: e.target.value})}
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="update-sex">Sex</Label>
-                <Input
-                  id="update-sex"
-                  value={updatePatientData.sex}
-                  onChange={(e) => setUpdatePatientData({...updatePatientData, sex: e.target.value})}
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="update-location">Location</Label>
-                <Input
-                  id="update-location"
-                  value={updatePatientData.location}
-                  onChange={(e) => setUpdatePatientData({...updatePatientData, location: e.target.value})}
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="update-fallRisk">Fall Risk</Label>
-                <select
-                  id="update-fallRisk"
-                  value={updatePatientData.fallRisk}
-                  onChange={(e) => setUpdatePatientData({...updatePatientData, fallRisk: e.target.value as 'yes' | 'no'})}
-                  className="w-full p-2 border rounded"
-                >
-                  <option value="no">No</option>
-                  <option value="yes">Yes</option>
-                </select>
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="update-profilePicture">
-                  Profile Picture
-                  <span className="text-sm text-muted-foreground ml-2">(Optional)</span>
-                </Label>
-                <Input
-                  id="update-profilePicture"
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => setProfilePicture(e.target.files?.[0] || null)}
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setIsUpdateDialogOpen(false)}
-              >
-                Cancel
-              </Button>
-              <Button type="submit">Update Patient</Button>
-            </DialogFooter>
-          </form>
+            <PatientEditDialog patient={selectedPatient} onClose={() => { setIsUpdateDialogOpen(false); mutate(); }} />
+     
         </DialogContent>
-      </Dialog>
+      </Dialog>}
     </div>
   );
 }
