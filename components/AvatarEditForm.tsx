@@ -663,7 +663,7 @@ const handlePromptSelect = (index: number, promptId: string) => {
                   )}
                 </SelectValue>
               </SelectTrigger>
-              <SelectContent className='max-w-[350px] w-full line-clamp-2 whitespace-pre-line break-words text-left'>
+              <SelectContent className='max-w-[350px] sm:max-w-full w-full line-clamp-2 whitespace-pre-line break-words text-left'>
                 {availablePrompts?.map((prompt, index) => (
                   <SelectItem 
                     key={prompt.id} 
