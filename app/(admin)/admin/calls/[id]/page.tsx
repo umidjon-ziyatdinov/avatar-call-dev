@@ -1,22 +1,30 @@
 // @ts-nocheck
 "use client";
-import React from 'react';
-import { format } from 'date-fns';
-import { AlertTriangle, Clock, PlayCircle, User2, Bot, Calendar, ArrowRight } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
+import React from "react";
+import { format } from "date-fns";
+import {
+  AlertTriangle,
+  Clock,
+  PlayCircle,
+  User2,
+  Bot,
+  Calendar,
+  ArrowRight,
+} from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 
-import { Call } from '@/lib/db/schema';
-import { useParams } from 'next/navigation';
-import Image from 'next/image';
-import { fetcher } from '@/lib/utils';
-import useSWR from 'swr';
+import { Call } from "@/lib/db/schema";
+import { useParams } from "next/navigation";
+import Image from "next/image";
+import { fetcher } from "@/lib/utils";
+import useSWR from "swr";
 
-export default function CallDetailsPage ()  {
-    const { id } = useParams<{ id: string }>(); // Get ID from route
-console.log('id', id)
-const { data:call, error, isLoading } = useSWR(`/api/calls/${id}`, fetcher);
+export default function CallDetailsPage() {
+  const { id } = useParams<{ id: string }>(); // Get ID from route
+  console.log("id", id);
+  const { data: call, error, isLoading } = useSWR(`/api/calls/${id}`, fetcher);
   const duration = call?.duration || 0;
   const minutes = Math.floor(duration / 60);
   const seconds = duration % 60;
@@ -36,17 +44,22 @@ const { data:call, error, isLoading } = useSWR(`/api/calls/${id}`, fetcher);
         <div>
           <h1 className="text-3xl font-bold mb-2">Call Details</h1>
           <div className="flex items-center gap-2">
-            <Badge variant={call?.status === 'completed' ? 'default' : 'secondary'}>
+            <Badge
+              variant={call?.status === "completed" ? "default" : "secondary"}
+            >
               {call?.status}
             </Badge>
             <span className="text-muted-foreground">
-              {call?.createdAt ? format(new Date(call?.createdAt), 'PPp') : 'N/A'}
+              {call?.createdAt
+                ? format(new Date(call?.createdAt), "PPp")
+                : "N/A"}
             </span>
           </div>
         </div>
       </div>
 
-    {/* Participants Connection Card */}
+      {/* Participants Connection Card */}
+      {/* Participants Connection Card */}
       <Card className="w-full">
         <CardHeader>
           <CardTitle>Call Participants</CardTitle>
@@ -56,8 +69,8 @@ const { data:call, error, isLoading } = useSWR(`/api/calls/${id}`, fetcher);
             {/* User Details */}
             <div className="flex-1 flex flex-row md:flex-row items-center gap-6">
               <div className="relative">
-              <Image
-                  src={call?.patientProfilePicture || ""}
+                <Image
+                  src={call?.patientProfilePicture || "/default-avatar.png"}
                   alt={call?.patientName || "Patient"}
                   width={80}
                   height={80}
@@ -85,18 +98,23 @@ const { data:call, error, isLoading } = useSWR(`/api/calls/${id}`, fetcher);
             </div>
 
             {/* Avatar Details */}
-            <div className="flex-1 flex flex-row-reverse  md:flex-row items-center gap-6 md:justify-end">
+            <div className="flex-1 flex flex-row-reverse md:flex-row items-center gap-6 md:justify-end">
               <div className="text-center md:text-right">
                 <h3 className="font-semibold text-lg">{call?.avatarName}</h3>
                 <p className="text-muted-foreground">{call?.avatarRole}</p>
-
               </div>
               <div className="relative">
-                <img
-                  src={call?.avatarImage}
-                  alt={call?.avatarName}
-                  className="w-20 h-20 rounded-full object-cover"
-                />
+                {call?.avatarImage ? (
+                  <img
+                    src={call.avatarImage}
+                    alt={call?.avatarName || "Avatar"}
+                    className="w-20 h-20 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center">
+                    <Bot className="h-8 w-8 text-muted-foreground" />
+                  </div>
+                )}
                 <Bot className="absolute bottom-0 right-0 bg-primary text-primary-foreground rounded-full p-1 h-6 w-6" />
               </div>
             </div>
@@ -113,19 +131,29 @@ const { data:call, error, isLoading } = useSWR(`/api/calls/${id}`, fetcher);
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <Calendar className="w-5 h-5 text-muted-foreground" />
-              <span>{call?.createdAt && format(new Date(call?.createdAt), 'MMMM dd, yyyy')}</span>
+              <span>
+                {call?.createdAt &&
+                  format(new Date(call?.createdAt), "MMMM dd, yyyy")}
+              </span>
             </div>
           </div>
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <Clock className="w-5 h-5 text-muted-foreground" />
-              {call?.createdAt && <span>{ format(new Date(call?.createdAt), 'HH:mm')} - {format(new Date(call?.endedAt), 'HH:mm')}</span>}
+              {call?.createdAt && (
+                <span>
+                  {format(new Date(call?.createdAt), "HH:mm")} -{" "}
+                  {format(new Date(call?.endedAt), "HH:mm")}
+                </span>
+              )}
             </div>
           </div>
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <span className="text-muted-foreground">Duration:</span>
-              <span>{minutes}m {seconds}s</span>
+              <span>
+                {minutes}m {seconds}s
+              </span>
             </div>
           </div>
           <div className="space-y-2">
@@ -145,11 +173,7 @@ const { data:call, error, isLoading } = useSWR(`/api/calls/${id}`, fetcher);
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <audio
-            controls
-            className="w-full"
-            src={call?.recordingUrl}
-          >
+          <audio controls className="w-full" src={call?.recordingUrl}>
             Your browser does not support the audio element.
           </audio>
         </CardContent>
@@ -212,19 +236,25 @@ const { data:call, error, isLoading } = useSWR(`/api/calls/${id}`, fetcher);
                 </div>
               </div>
               <div className="p-4 bg-muted rounded-lg">
-                <div className="text-sm text-muted-foreground">Avg Response</div>
+                <div className="text-sm text-muted-foreground">
+                  Avg Response
+                </div>
                 <div className="text-2xl font-semibold">
                   {call.conversationMetrics.avgResponseTime}s
                 </div>
               </div>
               <div className="p-4 bg-muted rounded-lg">
-                <div className="text-sm text-muted-foreground">User Speaking</div>
+                <div className="text-sm text-muted-foreground">
+                  User Speaking
+                </div>
                 <div className="text-2xl font-semibold">
                   {call.conversationMetrics.userSpeakingTime}s
                 </div>
               </div>
               <div className="p-4 bg-muted rounded-lg">
-                <div className="text-sm text-muted-foreground">Avatar Speaking</div>
+                <div className="text-sm text-muted-foreground">
+                  Avatar Speaking
+                </div>
                 <div className="text-2xl font-semibold">
                   {call.conversationMetrics.avatarSpeakingTime}s
                 </div>
@@ -235,5 +265,4 @@ const { data:call, error, isLoading } = useSWR(`/api/calls/${id}`, fetcher);
       </Card>
     </div>
   );
-};
-
+}
