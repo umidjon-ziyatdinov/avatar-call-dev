@@ -70,8 +70,8 @@ export default function CallDetailsPage() {
             <div className="flex-1 flex flex-row md:flex-row items-center gap-6">
               <div className="relative">
                 <Image
-                  src={call?.patientProfilePicture || "/default-avatar.png"}
-                  alt={call?.patientName || "Patient"}
+                  src={call?.patientProfilePicture ?? "/default-avatar.png"}
+                  alt={call?.name || "Patient"}  // Also changed this to match your data structure
                   width={80}
                   height={80}
                   className="rounded-full object-cover"

@@ -209,7 +209,7 @@ export default function CallHistory() {
                   <SelectValue placeholder="Select Patient" />
                 </SelectTrigger>
                 <SelectContent>
-                <SelectItem value="all">All Patients</SelectItem>
+                <SelectItem key="all-patients" value="all">All Patients</SelectItem>
                   {patients?.map(patient => (
                     <SelectItem key={patient.id} value={patient.id}>
                       {patient.name}
@@ -297,10 +297,10 @@ export default function CallHistory() {
               </TableHeader>
               <TableBody>
                 {callsLoading || searchLoading ? (
-                  Array(5).fill(0).map((_, i) => (
-                    <TableRow key={i}>
-                      {Array(6).fill(0).map((_, j) => (
-                        <TableCell key={j}>
+                  Array(5).fill(0).map((_, rowIndex) => (
+                    <TableRow key={`skeleton-row-${rowIndex}`}>
+                      {Array(6).fill(0).map((_, cellIndex) => (
+                        <TableCell key={`skeleton-cell-${rowIndex}-${cellIndex}`}>
                           <Skeleton className="h-4 w-full" />
                         </TableCell>
                       ))}

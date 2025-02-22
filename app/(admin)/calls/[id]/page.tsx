@@ -13,10 +13,10 @@ import Image from 'next/image';
 import { fetcher } from '@/lib/utils';
 import useSWR from 'swr';
 
-export default function CallDetailsPage ()  {
-    const { id } = useParams<{ id: string }>(); // Get ID from route
-console.log('id', id)
-const { data:call, error, isLoading } = useSWR(`/api/calls/${id}`, fetcher);
+export default function CallDetailsPage() {
+  const { id } = useParams<{ id: string }>(); // Get ID from route
+  console.log('id', id)
+  const { data: call, error, isLoading } = useSWR(`/api/calls/${id}`, fetcher);
   const duration = call?.duration || 0;
   const minutes = Math.floor(duration / 60);
   const seconds = duration % 60;
@@ -46,7 +46,7 @@ const { data:call, error, isLoading } = useSWR(`/api/calls/${id}`, fetcher);
         </div>
       </div>
 
-    {/* Participants Connection Card */}
+      {/* Participants Connection Card */}
       <Card className="w-full">
         <CardHeader>
           <CardTitle>Call Participants</CardTitle>
@@ -56,9 +56,9 @@ const { data:call, error, isLoading } = useSWR(`/api/calls/${id}`, fetcher);
             {/* User Details */}
             <div className="flex-1 flex flex-row md:flex-row items-center gap-6">
               <div className="relative">
-              <Image
-                  src={call?.patientProfilePicture || ""}
-                  alt={call?.patientName || "Patient"}
+                <Image
+                  src={call?.patientProfilePicture ?? "/default-avatar.png"}
+                  alt={call?.name || "Patient"}  // Also changed this to match your data structure
                   width={80}
                   height={80}
                   className="rounded-full object-cover"
@@ -119,7 +119,7 @@ const { data:call, error, isLoading } = useSWR(`/api/calls/${id}`, fetcher);
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <Clock className="w-5 h-5 text-muted-foreground" />
-              {call?.createdAt && <span>{ format(new Date(call?.createdAt), 'HH:mm')} - {format(new Date(call?.endedAt), 'HH:mm')}</span>}
+              {call?.createdAt && <span>{format(new Date(call?.createdAt), 'HH:mm')} - {format(new Date(call?.endedAt), 'HH:mm')}</span>}
             </div>
           </div>
           <div className="space-y-2">
