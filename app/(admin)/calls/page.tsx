@@ -112,7 +112,7 @@ export default function CallHistory() {
   const [filteredData, setFilteredData] = useState(null);
   const [searchLoading, setSearchLoading] = useState(false)
   
-  const { data: callsData, error: callsError, isLoading: callsLoading, mutate: mutateCalls } = useSWR('/api/calls', fetcher,  {
+  const { data: callsData, error: callsError, isLoading: isCallsLoading , mutate: mutateCalls } = useSWR('/api/calls', fetcher,  {
     revalidateOnFocus: false,
     revalidateOnReconnect: false,
     dedupingInterval: 600000, // 10 minutes
@@ -190,6 +190,8 @@ export default function CallHistory() {
       Failed to load data
     </div>
   );
+
+  const isLoading = isCallsLoading || patientsLoading;
 
   return (
     <div className="container mx-auto p-4 space-y-4">
@@ -295,7 +297,7 @@ export default function CallHistory() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {callsLoading || searchLoading ? (
+                {isCallsLoading || searchLoading ? (
                   Array(5).fill(0).map((_, i) => (
                     <TableRow key={i}>
                       {Array(6).fill(0).map((_, j) => (

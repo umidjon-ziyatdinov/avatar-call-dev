@@ -1,16 +1,16 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { useParams, usePathname } from 'next/navigation';
-import { memo } from 'react';
-import { 
-  HomeIcon, 
-  UsersIcon, 
-  SettingsIcon, 
+import Link from "next/link";
+import { useParams, usePathname } from "next/navigation";
+import { memo } from "react";
+import {
+  HomeIcon,
+  UsersIcon,
+  SettingsIcon,
   LayoutDashboardIcon,
   MessagesSquareIcon,
-  BoxIcon
-} from 'lucide-react';
+  BoxIcon,
+} from "lucide-react";
 
 import {
   SidebarGroup,
@@ -19,7 +19,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from '@/components/ui/sidebar';
+} from "@/components/ui/sidebar";
 
 type SidebarItemType = {
   label: string;
@@ -28,105 +28,104 @@ type SidebarItemType = {
 };
 
 const ModeratorSidebarGroups = [
+  {
+    items: [
+      {
+        label: "Dashboard",
+        href: "/",
+        icon: <LayoutDashboardIcon className="w-4 h-4" />,
+      },
+    ],
+  },
+  {
+    groupName: "Avatars",
+    items: [
+      {
+        label: "Avatar Characters",
+        href: "/admin",
+        icon: <LayoutDashboardIcon className="w-4 h-4" />,
+      },
+    ],
+  },
+  {
+    groupName: "Management",
+    items: [
+      {
+        label: "Super Admins",
+        href: "/super-admin",
+        icon: <UsersIcon className="w-4 h-4" />,
+      },
+      {
+        label: "Moderators",
+        href: "/moderator",
+        icon: <UsersIcon className="w-4 h-4" />,
+      },
 
-  {
+      {
+        label: "Patients",
+        href: "/patient",
+        icon: <UsersIcon className="w-4 h-4" />,
+      },
 
-    items: [
       {
-        label: 'Dashboard',
-        href: '/',
-        icon: <LayoutDashboardIcon className="w-4 h-4" />
+        label: "Call Logs",
+        href: "/calls",
+        icon: <MessagesSquareIcon className="w-4 h-4" />,
       },
-      
-    ]
- 
+    ],
   },
-  {
-    groupName: 'Avatars',
-    items: [
-      {
-        label: 'Avatar Characters',
-        href: '/admin',
-        icon: <LayoutDashboardIcon className="w-4 h-4" />
-      },
-      
-    ]
-  },
-  {
-    groupName: 'Management',
-    items: [
-      {
-        label: 'Patients',
-        href: '/patient',
-        icon: <UsersIcon className="w-4 h-4" />
-      },
-      {
-        label: 'Call Logs',
-        href: '/calls',
-        icon: <MessagesSquareIcon className="w-4 h-4" />
-      }
-    ]
-  },
- 
 ];
 
 const AdminSideBarGroups = [
-
   {
-
     items: [
       {
-        label: 'Dashboard',
-        href: '/dashboard',
-        icon: <LayoutDashboardIcon className="w-4 h-4" />
+        label: "Dashboard",
+        href: "/dashboard",
+        icon: <LayoutDashboardIcon className="w-4 h-4" />,
       },
-      
-    ]
- 
+    ],
   },
   {
-    groupName: 'Avatars',
+    groupName: "Avatars",
     items: [
       {
-        label: 'Avatar Characters',
-        href: '/admin',
-        icon: <LayoutDashboardIcon className="w-4 h-4" />
+        label: "Avatar Characters",
+        href: "/admin",
+        icon: <LayoutDashboardIcon className="w-4 h-4" />,
       },
-      
-    ]
+    ],
   },
   {
-    groupName: 'Management',
+    groupName: "Management",
     items: [
       {
-        label: 'Users',
-        href: '/users',
-        icon: <UsersIcon className="w-4 h-4" />
+        label: "Users",
+        href: "/users",
+        icon: <UsersIcon className="w-4 h-4" />,
       },
       {
-        label: 'Call History',
-        href: '/admin/calls',
-        icon: <MessagesSquareIcon className="w-4 h-4" />
-      }
-    ]
+        label: "Call History",
+        href: "/admin/calls",
+        icon: <MessagesSquareIcon className="w-4 h-4" />,
+      },
+    ],
   },
- 
 ];
 const PureSidebarItem = ({
   item,
   isActive,
-  setOpenMobile
+  setOpenMobile,
 }: {
   item: SidebarItemType;
   isActive: boolean;
   setOpenMobile: (open: boolean) => void;
-
 }) => {
   return (
     <SidebarMenuItem>
       <SidebarMenuButton asChild isActive={isActive}>
-        <Link 
-          href={item.href} 
+        <Link
+          href={item.href}
           onClick={() => setOpenMobile(false)}
           className="flex items-center gap-3"
         >
@@ -143,28 +142,38 @@ const SidebarItem = memo(PureSidebarItem, (prevProps, nextProps) => {
   return true;
 });
 
-export function AdminSidebarContent({ role = 'moderator' }: { role?: 'moderator' | 'admin' | 'user' }) {
+export function AdminSidebarContent({
+  role = "moderator",
+}: {
+  role?: "moderator" | "admin" | "user";
+}) {
   const { setOpenMobile } = useSidebar();
-const pathname = usePathname();
-  const  navItems = role ==='admin' ? AdminSideBarGroups  : ModeratorSidebarGroups;
+  const pathname = usePathname();
+  const navItems =
+    role === "admin" ? AdminSideBarGroups : ModeratorSidebarGroups;
+
   return (
     <>
       <SidebarGroup>
         <SidebarGroupContent>
           <SidebarMenu>
             {navItems?.map((group, groupIndex) => (
-              <div key={group.groupName}>
-                <div className="px-2 py-1 text-xs text-sidebar-foreground/50 mt-6 first:mt-0">
-                  {group.groupName}
-                </div>
-                {group?.items && group.items.map((item) => (
-                  <SidebarItem
-                    key={item.href}
-                    item={item}
-                    isActive={item.href === (pathname as string)}
-                    setOpenMobile={setOpenMobile}
-                  />
-                ))}
+              // Use groupIndex as fallback when groupName is undefined
+              <div key={group.groupName || `group-${groupIndex}`}>
+                {group.groupName && (
+                  <div className="px-2 py-1 text-xs text-sidebar-foreground/50 mt-6 first:mt-0">
+                    {group.groupName}
+                  </div>
+                )}
+                {group?.items &&
+                  group.items.map((item) => (
+                    <SidebarItem
+                      key={item.href}
+                      item={item}
+                      isActive={item.href === (pathname as string)}
+                      setOpenMobile={setOpenMobile}
+                    />
+                  ))}
               </div>
             ))}
           </SidebarMenu>

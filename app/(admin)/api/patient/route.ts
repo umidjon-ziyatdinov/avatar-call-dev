@@ -1,129 +1,146 @@
-
-import { put } from '@vercel/blob';
-import { auth } from '@/app/(auth)/auth';
-import {
-    deleteUserById,
-    getUserById,
-    createUser,
-    updateUser,
-    getAllUsers,
-    createPatient,
-    getPatientById,
-    getAllPAtients
-} from '@/lib/db/queries';
-import { User, user } from '@/lib/db/schema';
-import * as bcrypt from 'bcrypt-ts';
+// app/(admin)/api/patient/route.ts
 import { NextResponse } from 'next/server';
+import { put } from '@vercel/blob';
+import * as bcrypt from 'bcrypt-ts';
+import { auth } from '@/app/(auth)/auth';
+import { 
+  getAllPatients,
+  getPatientsByCreator,
+  createPatientWithUser,
+  searchPatients,
+  filterPatients
+} from '@/lib/db/patient-user-queries';
 
-export async function POST(request: Request) {
-    const session = await auth();
-
-    if (!session?.user && !session?.user?.id) {
-        return new Response('Unauthorized', { status: 401 });
-    }
-    if (session?.user.role !== 'moderator') {
-        return new Response('Unauthorized', { status: 403 });
-    }
-
-    try {
-        const formData = await request.formData();
-        const email = formData.get('email') as string;
-        const password = formData.get('password') as string;
-        const name = formData.get('name') as string;
-
-        const profilePicture = formData.get('profilePicture') as File;
-
-        if (!email || !password) {
-            return new Response('Email and password are required', { status: 400 });
-        }
-
-        let profilePictureUrl = '';
-        if (profilePicture) {
-            const blob = await put(`profiles/${Date.now()}-${profilePicture.name}`, profilePicture, {
-                access: 'public',
-            });
-            profilePictureUrl = blob.url;
-        }
-        const patientDetails = {
-            about: formData.get('about') as string || '',
-            age: formData.get('age') as string || '',
-            sex: formData.get('sex') as string || '',
-            dateOfBirth: formData.get('dateOfBirth') as string || '',
-            location: formData.get('location') as string || '',
-            education: formData.get('education') as string || '',
-            work: formData.get('work') as string || '',
-            fallRisk: (formData.get('fallRisk') as string || 'no') as 'yes' | 'no',
-            promptAnswers: JSON.parse(formData.get('promptAnswers') as string),
-            likes: formData.get('likes') as string || '',
-            dislikes: formData.get('dislikes') as string || '',
-            symptoms: formData.get('symptoms') as string || '',
-            avatar: formData.get('avatar') as string || '',
-
-        };
-        // Hash password before storing
-        const hashedPassword = await bcrypt.hash(password, 10);
-
-        const newUser = await createPatient({
-            userId: session.user.id ?? 'defaultUserId',
-            email,
-            password: hashedPassword,
-            name: name || 'Unknown',
-            profilePicture: profilePictureUrl,
-            ...patientDetails
-
-        });
-
-        // Remove password from response
-        const { password: _, ...userWithoutPassword } = newUser;
-
-        return new Response(JSON.stringify(userWithoutPassword), {
-            status: 201,
-            headers: { 'Content-Type': 'application/json' },
-        });
-    } catch (error) {
-        console.error('Failed to create user:', error);
-        return new Response('Failed to create user', { status: 500 });
-    }
-}
-
+// GET /api/patient
 export async function GET(request: Request) {
+  try {
     const session = await auth();
-
     if (!session?.user?.id) {
-        return new Response('Unauthorized', { status: 401 });
+      return new Response('Unauthorized', { status: 401 });
     }
 
-    try {
-        const { searchParams } = new URL(request.url);
-        const id = searchParams.get('id');
+    const { searchParams } = new URL(request.url);
+    const search = searchParams.get('search');
+    
+    // Filter parameters
+    const location = searchParams.get('location');
+    const minAge = searchParams.get('minAge');
+    const maxAge = searchParams.get('maxAge');
+    const sex = searchParams.get('sex');
+    const fallRisk = searchParams.get('fallRisk') as 'yes' | 'no' | null;
 
-        if (id) {
-            const patient = await getPatientById({ id });
-            if (!patient) {
-                return new Response('User not found', { status: 404 });
-            }
-            // Remove password from response
-            const { password: _, ...userWithoutPassword } = user;
-            return new Response(JSON.stringify(userWithoutPassword), {
-                headers: { 'Content-Type': 'application/json' },
-            });
-        }
+    let patients;
 
-        // Only admins can get all users
-        if (!session.user) {
-            return new Response('Unauthorized', { status: 401 });
-        }
-
-        const users = await getAllPAtients(session.user.id);
-        // Remove passwords from response
-        const usersWithoutPasswords = users.map(({ password: _, ...user }) => user);
-
-        return new Response(JSON.stringify(usersWithoutPasswords), {
-            headers: { 'Content-Type': 'application/json' },
-        });
-    } catch (error) {
-        console.error('Failed to fetch users:', error);
-        return new Response('Failed to fetch users', { status: 500 });
+    if (search) {
+      patients = await searchPatients(search);
+    } else if (location || minAge || maxAge || sex || fallRisk) {
+      patients = await filterPatients({
+        location: location || undefined,
+        ageRange: minAge && maxAge ? { min: minAge, max: maxAge } : undefined,
+        sex: sex || undefined,
+        fallRisk: fallRisk || undefined
+      });
+    } else {
+      // If user is admin or moderator, get all patients, otherwise get only their created patients
+      if (session.user.role === 'admin' || session.user.role === 'moderator') {
+        patients = await getAllPatients();
+      } else {
+        patients = await getPatientsByCreator(session.user.id);
+      }
     }
+
+    // Remove sensitive information from response
+    const sanitizedPatients = patients.map(({ password: _, ...patient }) => patient);
+    return NextResponse.json(sanitizedPatients);
+  } catch (error) {
+    console.error('Error in GET /api/patient:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch patients' },
+      { status: 500 }
+    );
+  }
 }
 
+// POST /api/patient
+export async function POST(request: Request) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return new Response('Unauthorized', { status: 401 });
+    }
+
+    const formData = await request.formData();
+
+    // Required fields
+    const email = formData.get('email') as string;
+    const password = formData.get('password') as string;
+    const name = formData.get('name') as string;
+
+    if (!email || !password || !name) {
+      return NextResponse.json(
+        { error: 'Required fields are missing' },
+        { status: 400 }
+      );
+    }
+
+    // Handle profile picture upload
+    const profilePicture = formData.get('profilePicture') as File;
+    let profilePictureUrl = '';
+    if (profilePicture) {
+      const blob = await put(`profiles/${Date.now()}-${profilePicture.name}`, profilePicture, {
+        access: 'public',
+      });
+      profilePictureUrl = blob.url;
+    }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Handle optional fields
+    const about = formData.get('about') as string;
+    const age = formData.get('age') as string;
+    const sex = formData.get('sex') as string;
+    const dateOfBirth = formData.get('dateOfBirth') as string;
+    const location = formData.get('location') as string;
+    const education = formData.get('education') as string;
+    const work = formData.get('work') as string;
+    const fallRisk = formData.get('fallRisk') as 'yes' | 'no';
+    const likes = formData.get('likes') as string;
+    const dislikes = formData.get('dislikes') as string;
+    const symptoms = formData.get('symptoms') as string;
+    const promptAnswers = formData.get('promptAnswers') 
+      ? JSON.parse(formData.get('promptAnswers') as string)
+      : {};
+
+    // Create both user and patient records
+    const { user: newUser, patient: newPatient } = await createPatientWithUser({
+      email,
+      password: hashedPassword,
+      name,
+      profilePicture: profilePictureUrl,
+      about: about || '',
+      age: age || '',
+      sex: sex || '',
+      dateOfBirth: dateOfBirth || '',
+      location: location || '',
+      education: education || '',
+      work: work || '',
+      fallRisk: fallRisk || 'no',
+      promptAnswers,
+      likes: likes || '',
+      dislikes: dislikes || '',
+      symptoms: symptoms || '',
+      createdById: session.user.id
+    });
+
+    // Remove sensitive information from response
+    const { password: _, ...patientWithoutPassword } = newPatient;
+    return NextResponse.json(patientWithoutPassword, { status: 201 });
+  } catch (error) {
+    console.error('Error in POST /api/patient:', error);
+    return NextResponse.json(
+      { error: 'Failed to create patient' },
+      { status: 500 }
+    );
+  }
+}

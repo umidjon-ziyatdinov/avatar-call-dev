@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import type { User } from 'next-auth';
-import { useRouter } from 'next/navigation';
+import type { User } from "next-auth";
+import { useRouter } from "next/navigation";
 
-import { PlusIcon } from '@/components/icons';
+import { PlusIcon } from "@/components/icons";
 
-import { SidebarUserNav } from '@/components/sidebar-user-nav';
-import { Button } from '@/components/ui/button';
+import { SidebarUserNav } from "@/components/sidebar-user-nav";
+import { Button } from "@/components/ui/button";
 import {
   Sidebar,
   SidebarContent,
@@ -14,12 +14,10 @@ import {
   SidebarHeader,
   SidebarMenu,
   useSidebar,
-} from '@/components/ui/sidebar';
-import Link from 'next/link';
-import { AdminSidebarContent } from './admin-sidebar-content';
+} from "@/components/ui/sidebar";
+import Link from "next/link";
+import { AdminSidebarContent } from "./admin-sidebar-content";
 // import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
-
-
 
 export function AdminSidebar({ user }: { user: User | undefined }) {
   const router = useRouter();
@@ -45,7 +43,7 @@ export function AdminSidebar({ user }: { user: User | undefined }) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <AdminSidebarContent  role={user?.role} />
+        <AdminSidebarContent role={user?.role} />
       </SidebarContent>
       {/* <SidebarFooter>{user && <SidebarUserNav user={user} />}</SidebarFooter> */}
     </Sidebar>

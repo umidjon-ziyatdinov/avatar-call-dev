@@ -913,7 +913,6 @@ export async function getModeratorCalls(filters: CallFilters = {}) {
         analysis: call.analysis,
         errorLogs: call.errorLogs,
         metadata: call.metadata,
-
         // User details
         userId: user.id,
         userName: user.name,
@@ -922,7 +921,6 @@ export async function getModeratorCalls(filters: CallFilters = {}) {
         userProfilePicture: user.profilePicture,
         userCreatedAt: user.createdAt,
         userIsActive: user.isActive,
-
         // Avatar details
         avatarId: avatar.id,
         avatarName: avatar.name,
