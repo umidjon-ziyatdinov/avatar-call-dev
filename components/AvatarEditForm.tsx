@@ -1,3 +1,4 @@
+
 // @ts-nocheck
 "use client";
 import { useCallback, useEffect, useState } from 'react';
@@ -9,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
-import { Upload, Loader2 } from 'lucide-react';
+import { Upload, Loader2, Check, ChevronsUpDown } from 'lucide-react';
 
 import {
   Select,
@@ -20,7 +21,7 @@ import {
 } from '@/components/ui/select';
 import { cn, fetcher } from '@/lib/utils';
 import { InteractionPrompts, OpenAIVoices, OpenAIModels } from '@/types/enums';
-import { Avatar } from '@/lib/db/schema';
+import { Avatar, Patient } from '@/lib/db/schema';
 import { SubmitButton } from './submit-button';
 import { toast } from 'sonner';
 import LoadingOverlay from './LoadingOverlay';
@@ -28,12 +29,15 @@ import StatusMessage from './StatusMessage';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
 import MobileVideoChat from './mobile-videochat';
 import useSWR from 'swr';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from './ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 
 interface AvatarFormProps {
   avatar?: Avatar;
   onClose: () => void;
   setAvatar?: (value: Avatar) => void,
-  createEndpoint?: string
+  createEndpoint?: string,
+  userRole?: 'moderator' | 'admin'
 }
 // Type for prompt
 type Prompt = {
@@ -60,7 +64,7 @@ const OpenAIVoiceGenders: Record<typeof OpenAIVoices[number], string> = {
 };
 
 
-export function AvatarForm({ avatar, onClose, setAvatar, createEndpoint = "/api/avatar" }: AvatarFormProps) {
+export function AvatarForm({ avatar, onClose, setAvatar, createEndpoint = "/api/avatar", userRole = 'moderator' }: AvatarFormProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState('');
@@ -68,13 +72,22 @@ export function AvatarForm({ avatar, onClose, setAvatar, createEndpoint = "/api/
   const [avatarPreview, setAvatarPreview] = useState<string | null>(
     avatar?.avatarImage || null
   );
+  const { data: patients, error:patientError, isLoading: patientLoading, mutate } = useSWR<Patient[]>('/api/patient', fetcher);
 
   // New state for prompts
-  const {data: availablePrompts, isLoading: promptLoading, mutate: refetchPrompts} = useSWR<Prompt[]>("/api/avatar/prompt", fetcher);
+  const {data: availablePrompts, isLoading: promptLoading, mutate: refetchPrompts} = useSWR<Prompt[]>("/api/prompt/avatar", fetcher);
   const [selectedPrompts, setSelectedPrompts] = useState<PromptAnswer[]>(
     avatar?.promptAnswers || []
   );
-
+  const [selectedPatientIds, setSelectedPatientIds] = useState<string[]>(
+    avatar?.patientIds || []
+  );
+  const [patientSelectOpen, setPatientSelectOpen] = useState(false);
+  useEffect(() => {
+    if (patients && patients.length > 0 && selectedPatientIds.length === 0) {
+      setSelectedPatientIds(patients.map(p => p.id));
+    }
+  }, [patients]);
 
   // const pathname = usePathname();
   const [isTestDialogOpen, setIsTestDialogOpen] = useState(false);
@@ -173,6 +186,118 @@ const handlePromptSelect = (index: number, promptId: string) => {
     }
   }, [avatar]);
 
+  const togglePatient = (patientId: string) => {
+    setSelectedPatientIds(prev =>
+      prev.includes(patientId)
+        ? prev.filter(id => id !== patientId)
+        : [...prev, patientId]
+    );
+  };
+
+  // Select all patients
+  const selectAllPatients = () => {
+    if (patients) {
+      setSelectedPatientIds(patients.map(p => p.id));
+    }
+  };
+
+  // Deselect all patients
+  const deselectAllPatients = () => {
+    setSelectedPatientIds([]);
+  };
+
+
+  const renderPatientSelection = () => {
+    if (userRole !== 'moderator') return null;
+
+    if (patientLoading) {
+      return (
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold">Patient Access</h3>
+          <div className="flex items-center space-x-2">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            <span>Loading patients...</span>
+          </div>
+        </div>
+      );
+    }
+
+    if (patientError) {
+      return (
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold">Patient Access</h3>
+          <div className="text-red-500">
+            Error loading patients. Please try again later.
+          </div>
+        </div>
+      );
+    }
+
+    if (!patients || patients.length === 0) {
+      return (
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold">Patient Access</h3>
+          <div>No patients available.</div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold">Patient Access</h3>
+        <div className="space-y-2">
+          <div className="flex justify-between mb-2">
+            <Label>Select Patients</Label>
+            <div className="space-x-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={selectAllPatients}
+              >
+                Select All
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={deselectAllPatients}
+              >
+                Deselect All
+              </Button>
+            </div>
+          </div>
+          
+          <div className="border rounded-md p-4 space-y-2 max-h-60 overflow-y-auto">
+            {patients.map((patient) => (
+              <div
+                key={patient.id}
+                className="flex items-center space-x-2 p-2 hover:bg-accent rounded-md cursor-pointer"
+                onClick={() => togglePatient(patient.id)}
+              >
+                <div className={cn(
+                  "w-4 h-4 border rounded-sm flex items-center justify-center",
+                  selectedPatientIds.includes(patient.id) ? "bg-primary border-primary" : "border-input"
+                )}>
+                  {selectedPatientIds.includes(patient.id) && (
+                    <Check className="h-3 w-3 text-primary-foreground" />
+                  )}
+                </div>
+                <span>{patient.name}</span>
+              </div>
+            ))}
+          </div>
+          
+          <p className="text-sm text-muted-foreground">
+            {selectedPatientIds.length === 0 
+              ? "Please select at least one patient" 
+              : `${selectedPatientIds.length} of ${patients.length} patients selected`}
+          </p>
+        </div>
+      </div>
+    );
+  };
+
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (avatar) return;
     const file = e.target.files?.[0];
@@ -221,7 +346,8 @@ const handlePromptSelect = (index: number, promptId: string) => {
           personality: personalityValues,
           openaiVoice: formData.get('openaiVoice'),
           openaiModel: formData.get('openaiModel'),
-          avatarImage: avatar.avatarImage
+          avatarImage: avatar.avatarImage,
+          patientIds: userRole === 'moderator' ? selectedPatientIds : undefined,
         };
 
         const response = await fetch(endpoint, {
@@ -257,6 +383,9 @@ const handlePromptSelect = (index: number, promptId: string) => {
 
         newFormData.append('personality', JSON.stringify(personalityValues));
         newFormData.append("avatarFile", avatarFile);
+        if (userRole === 'moderator') {
+          newFormData.append('patientIds', JSON.stringify(selectedPatientIds));
+        }
 
         setLoadingMessage('Uploading image and creating your avatar...');
         const response = await fetch(endpoint, {
@@ -451,6 +580,7 @@ const handlePromptSelect = (index: number, promptId: string) => {
               </div>
             </div>
           </div>
+          {renderPatientSelection()}
 
           {/* Basic Information */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
