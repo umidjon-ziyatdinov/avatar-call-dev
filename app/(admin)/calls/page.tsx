@@ -312,7 +312,7 @@ export default function CallHistory() {
                   <TableRow
                     key={call.callId}
                     className="cursor-pointer hover:bg-accent"
-                    onClick={() => handleRowClick(call.id)}
+                    onClick={() => handleRowClick(call?.id)}
                   >
                     <TableCell>
                       <div className="flex items-center gap-3">
@@ -323,7 +323,7 @@ export default function CallHistory() {
                             className="w-full h-full object-cover"
                           />
                         </div>
-                        <span className="font-medium">{call.avatarName}</span>
+                        <span className="font-medium">{call?.avatarName}</span>
                       </div>
                     </TableCell>
                     <TableCell>

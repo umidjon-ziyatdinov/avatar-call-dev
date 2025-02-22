@@ -161,7 +161,7 @@ const { data:call, error, isLoading } = useSWR(`/api/calls/${id}`, fetcher);
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>Attention Required</AlertTitle>
           <AlertDescription>
-            {call?.analysis.alert_summary.description}
+            {call?.analysis?.alert_summary?.description}
           </AlertDescription>
         </Alert>
       )}
@@ -176,7 +176,7 @@ const { data:call, error, isLoading } = useSWR(`/api/calls/${id}`, fetcher);
           <div>
             <h3 className="font-semibold mb-2">Key Points</h3>
             <ul className="list-disc pl-6 space-y-2">
-              {call?.analysis.key_points.map((point, index) => (
+              {call?.analysis?.key_points && call?.analysis?.key_points?.map((point, index) => (
                 <li key={index}>{point}</li>
               ))}
             </ul>
@@ -186,13 +186,13 @@ const { data:call, error, isLoading } = useSWR(`/api/calls/${id}`, fetcher);
           <div>
             <h3 className="font-semibold mb-2">Timeline</h3>
             <div className="space-y-4">
-              {call.analysis.call_timeline.map((timepoint, index) => (
+              {call?.analysis?.call_timeline?.map((timepoint, index) => (
                 <div key={index} className="flex gap-4">
                   <div className="text-sm text-muted-foreground w-24">
-                    {timepoint.timestamp}
+                    {timepoint?.timestamp}
                   </div>
                   <div>
-                    {timepoint.discussion_points.map((point, i) => (
+                    {timepoint?.discussion_points && timepoint?.discussion_points?.map((point, i) => (
                       <p key={i}>{point}</p>
                     ))}
                   </div>
