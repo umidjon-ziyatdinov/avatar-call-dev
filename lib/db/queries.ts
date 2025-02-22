@@ -2,7 +2,7 @@
 import 'server-only';
 
 import { genSaltSync, hashSync } from 'bcrypt-ts';
-import { and, asc, desc, eq, gt, gte, inArray, isNull, or } from 'drizzle-orm';
+import { and, asc, desc, eq, gt, gte, inArray, isNull, or, like, ilike } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 
@@ -872,3 +872,107 @@ export async function getAdminUser(passcode: number) {
   }
 }
 
+
+
+
+
+interface CallFilters {
+  userId?: string;
+  avatarId?: string;
+  status?: string;
+  startDate?: Date;
+  endDate?: Date;
+  duration?: number;
+  search?: string; // For searching across user name, avatar name, etc.
+}
+
+export async function getCalls(filters: CallFilters = {}) {
+  try {
+    const {
+      userId,
+      avatarId,
+      status,
+      startDate,
+      endDate,
+      duration,
+      search
+    } = filters;
+
+    const query = db
+      .select({
+        // Call details
+        callId: call.id,
+        duration: call.duration,
+        status: call.status,
+        createdAt: call.createdAt,
+        endedAt: call.endedAt,
+        recordingUrl: call.recordingUrl,
+        transcriptUrl: call.transcriptUrl,
+        prompt: call.prompt,
+        qualityMetrics: call.qualityMetrics,
+        conversationMetrics: call.conversationMetrics,
+        technicalDetails: call.technicalDetails,
+        analysis: call.analysis,
+        errorLogs: call.errorLogs,
+        metadata: call.metadata,
+        
+        // User details
+        userId: user.id,
+        userName: user.name,
+        userEmail: user.email,
+        userRole: user.role,
+        userProfilePicture: user.profilePicture,
+        userCreatedAt: user.createdAt,
+        userIsActive: user.isActive,
+        
+        // Avatar details
+        avatarId: avatar.id,
+        avatarName: avatar.name,
+        avatarRole: avatar.role,
+        avatarAbout: avatar.about,
+        avatarAge: avatar.age,
+        avatarSex: avatar.sex,
+        avatarEducation: avatar.education,
+        avatarWork: avatar.work,
+        avatarImage: avatar.avatarImage,
+        avatarIsActive: avatar.isActive,
+        avatarOpenaiVoice: avatar.openaiVoice,
+        avatarOpenaiModel: avatar.openaiModel
+      })
+      .from(call)
+      .innerJoin(user, eq(call.userId, user.id))
+      .innerJoin(avatar, eq(call.avatarId, avatar.id))
+      .where(
+        and(
+          // User filter
+          userId ? eq(call.userId, userId) : undefined,
+          // Avatar filter
+          avatarId ? eq(call.avatarId, avatarId) : undefined,
+          // Status filter
+          status ? eq(call.status, status) : undefined,
+          // Date range filter
+          startDate ? sql`${call.createdAt} >= ${startDate}` : undefined,
+          endDate ? sql`${call.createdAt} <= ${endDate}` : undefined,
+          // Duration filter
+          duration ? sql`${call.duration} >= ${duration}` : undefined,
+          // Search across multiple fields
+          search
+            ? or(
+                ilike(user.name, `%${search}%`),
+                ilike(user.email, `%${search}%`),
+                ilike(avatar.name, `%${search}%`),
+                ilike(avatar.role, `%${search}%`)
+              )
+            : undefined
+        )
+      )
+      .orderBy(desc(call.createdAt));
+
+    const calls = await query;
+    return calls;
+
+  } catch (error) {
+    console.error('Error in getCalls:', error);
+    throw new Error('Failed to fetch calls');
+  }
+}

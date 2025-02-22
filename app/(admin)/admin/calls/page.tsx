@@ -1,16 +1,10 @@
-
 // @ts-nocheck
-'use client';
-import React, { useEffect, useState } from 'react';
-import useSWR from 'swr';
-import { format } from 'date-fns';
+"use client";
+import React, { useEffect, useState } from "react";
+import useSWR from "swr";
+import { format } from "date-fns";
 
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -33,32 +27,30 @@ import {
   Clock,
   PhoneCall,
   PhoneMissed,
-} from 'lucide-react';
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { fetcher } from '@/lib/utils';
-import { useRouter } from 'next/navigation';
+import { fetcher } from "@/lib/utils";
+import { useRouter } from "next/navigation";
 
 const statusIcons = {
   active: <Clock className="w-4 h-4 text-yellow-500" />,
   completed: <CheckCircle2 className="w-4 h-4 text-green-500" />,
   failed: <AlertCircle className="w-4 h-4 text-red-500" />,
-  missed: <PhoneMissed className="w-4 h-4 text-gray-500" />
+  missed: <PhoneMissed className="w-4 h-4 text-gray-500" />,
 };
 
 export default function CallHistory() {
   const router = useRouter();
   const [avatarFilter, setAvatarFilter] = useState("all"); // Changed initial value to "all"
   const [searchQuery, setSearchQuery] = useState("");
-  const [calls, setCalls] = useState([])
-  const { data, error, isLoading } = useSWR('/api/calls', fetcher);
-
+  const [calls, setCalls] = useState([]);
+  const { data, error, isLoading } = useSWR("/api/calls", fetcher);
 
   useEffect(() => {
-    if(data) setCalls(data?.data)
-      console.log('data', data)
-    }, [data])
-    
+    if (data) setCalls(data?.data);
+    console.log("data", data);
+  }, [data]);
 
   if (isLoading) {
     return (
@@ -69,26 +61,32 @@ export default function CallHistory() {
     );
   }
 
-
-  const filteredCalls =  calls?.filter(call => {
-    const matchesAvatar = avatarFilter === "all" || call.metadata.avatarName === avatarFilter; // Updated condition
-    const matchesSearch = !searchQuery || 
-      call.metadata.avatarName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+  const filteredCalls = calls?.filter((call) => {
+    const matchesAvatar =
+      avatarFilter === "all" || call.metadata.avatarName === avatarFilter; // Updated condition
+    const matchesSearch =
+      !searchQuery ||
+      call.metadata.avatarName
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase()) ||
       call.userId.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesAvatar && matchesSearch;
   });
 
-  const uniqueAvatars = calls ? [...new Set(calls.map(call => call.metadata.avatarName))] : [];
+  const uniqueAvatars = calls
+    ? [...new Set(calls.map((call) => call.metadata.avatarName))]
+    : [];
 
   const handleRowClick = (callId) => {
     router.push(`/admin/calls/${callId}`);
   };
 
-  if (error) return (
-    <div className="p-4 text-center text-red-500">
-      Failed to load call history
-    </div>
-  );
+  if (error)
+    return (
+      <div className="p-4 text-center text-red-500">
+        Failed to load call history
+      </div>
+    );
 
   return (
     <div className="container mx-auto p-4 space-y-4">
@@ -116,7 +114,7 @@ export default function CallHistory() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Avatars</SelectItem>
-                  {uniqueAvatars.map(avatar => (
+                  {uniqueAvatars.map((avatar) => (
                     <SelectItem key={avatar} value={avatar}>
                       {avatar}
                     </SelectItem>
@@ -133,56 +131,77 @@ export default function CallHistory() {
                   <TableHead>Status</TableHead>
                   <TableHead>Avatar</TableHead>
                   <TableHead>Duration</TableHead>
-                  <TableHead className="hidden md:table-cell">Quality</TableHead>
+                  <TableHead className="hidden md:table-cell">
+                    Quality
+                  </TableHead>
                   <TableHead>Date</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {isLoading ? (
-                  Array(5).fill(0).map((_, i) => (
-                    <TableRow key={i}>
-                      {Array(5).fill(0).map((_, j) => (
-                        <TableCell key={j}>
-                          <Skeleton className="h-4 w-full" />
+                {isLoading
+                  ? Array(5)
+                      .fill(0)
+                      .map((_, i) => (
+                        <TableRow key={i}>
+                          {Array(5)
+                            .fill(0)
+                            .map((_, j) => (
+                              <TableCell key={j}>
+                                <Skeleton className="h-4 w-full" />
+                              </TableCell>
+                            ))}
+                        </TableRow>
+                      ))
+                  : filteredCalls?.map((call) => (
+                      <TableRow
+                        key={call.id}
+                        className="cursor-pointer hover:bg-accent"
+                        onClick={() => handleRowClick(call.id)}
+                      >
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            {statusIcons[call.status]}
+                            <span className="hidden md:inline">
+                              {call.status.charAt(0).toUpperCase() +
+                                call.status.slice(1)}
+                            </span>
+                          </div>
                         </TableCell>
-                      ))}
-                    </TableRow>
-                  ))
-                ) : filteredCalls?.map((call) => (
-                  <TableRow
-                    key={call.id}
-                    className="cursor-pointer hover:bg-accent"
-                    onClick={() => handleRowClick(call.id)}
-                  >
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        {statusIcons[call.status]}
-                        <span className="hidden md:inline">
-                          {call.status.charAt(0).toUpperCase() + call.status.slice(1)}
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {call.metadata.avatarName}
-                    </TableCell>
-                    <TableCell>
-                      {Math.floor(call.duration / 60)}m {call.duration % 60}s
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell">
-                      <div className="flex gap-2">
-                        <Badge variant={call.qualityMetrics.audioQuality > 80 ? "success" : "destructive"}>
-                          Audio: {call.qualityMetrics.audioQuality}%
-                        </Badge>
-                        <Badge variant={call.qualityMetrics.videoQuality > 80 ? "success" : "destructive"}>
-                          Video: {call.qualityMetrics.videoQuality}%
-                        </Badge>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {format(new Date(call.createdAt), 'MMM d, yyyy HH:mm')}
-                    </TableCell>
-                  </TableRow>
-                ))}
+                        <TableCell>{call.metadata.avatarName}</TableCell>
+                        <TableCell>
+                          {Math.floor(call.duration / 60)}m {call.duration % 60}
+                          s
+                        </TableCell>
+                        <TableCell className="hidden md:table-cell">
+                          <div className="flex gap-2">
+                            <Badge
+                              variant={
+                                call.qualityMetrics.audioQuality > 80
+                                  ? "success"
+                                  : "destructive"
+                              }
+                            >
+                              Audio: {call.qualityMetrics.audioQuality}%
+                            </Badge>
+                            <Badge
+                              variant={
+                                call.qualityMetrics.videoQuality > 80
+                                  ? "success"
+                                  : "destructive"
+                              }
+                            >
+                              Video: {call.qualityMetrics.videoQuality}%
+                            </Badge>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          {format(
+                            new Date(call.createdAt),
+                            "MMM d, yyyy HH:mm"
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
                 {filteredCalls?.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={5} className="text-center py-8">

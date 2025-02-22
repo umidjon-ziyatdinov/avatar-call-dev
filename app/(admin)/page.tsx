@@ -1,10 +1,10 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { User2, Shield, Clock, Settings, Loader2 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { toast } from 'sonner';
+import { toast } from "sonner";
 import {
   Card,
   CardContent,
@@ -15,12 +15,9 @@ import {
 import { fetcher } from "@/lib/utils";
 import useSWR from "swr";
 
-import { Avatar } from '@/lib/db/schema';
-import Image from 'next/image';
-import AdminScreen from './components/AdminScreen';
-
-
-
+import { Avatar } from "@/lib/db/schema";
+import Image from "next/image";
+import AdminScreen from "./components/AdminScreen";
 
 interface AvatarSettings {
   id: string;
@@ -45,20 +42,24 @@ interface AuthResponse {
   error?: string;
 }
 
-const NumPadButton = ({ 
-  children, 
+const NumPadButton = ({
+  children,
   onClick,
   disabled = false,
-  className = ""
-}: { 
-  children: React.ReactNode; 
+  className = "",
+}: {
+  children: React.ReactNode;
   onClick: () => void;
   disabled?: boolean;
   className?: string;
 }) => (
   <button
     className={`h-16 w-16 rounded-full bg-background text-2xl transition-colors 
-      ${disabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-transparent active:bg-muted/80'}
+      ${
+        disabled
+          ? "opacity-50 cursor-not-allowed"
+          : "hover:bg-transparent active:bg-muted/80"
+      }
       ${className}`}
     onClick={onClick}
     disabled={disabled}
@@ -67,24 +68,27 @@ const NumPadButton = ({
   </button>
 );
 
-const PasscodeScreen = ({ onSubmit, isAuthenticating }: { 
+const PasscodeScreen = ({
+  onSubmit,
+  isAuthenticating,
+}: {
   onSubmit: (code: string) => void;
   isAuthenticating: boolean;
 }) => {
-  const [passcode, setPasscode] = useState<string>('');
+  const [passcode, setPasscode] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   const handleNumberPress = async (num: number) => {
     if (isAuthenticating || isSubmitting) return;
-    
+
     if (passcode.length < 4) {
       const newPasscode = passcode + num;
       setPasscode(newPasscode);
-      
+
       if (newPasscode.length === 4) {
         setIsSubmitting(true);
         await onSubmit(newPasscode);
-        setPasscode('');
+        setPasscode("");
         setIsSubmitting(false);
       }
     }
@@ -92,33 +96,36 @@ const PasscodeScreen = ({ onSubmit, isAuthenticating }: {
 
   const handleDelete = () => {
     if (isAuthenticating || isSubmitting) return;
-    setPasscode(prev => prev.slice(0, -1));
+    setPasscode((prev) => prev.slice(0, -1));
   };
 
   return (
     <div className="flex flex-col items-center gap-8 p-6">
       <h2 className="text-2xl font-semibold">Enter Admin Passcode</h2>
-      
+
       {/* Passcode dots */}
       <div className="flex gap-4">
         {[...Array(4)].map((_, i) => (
           <div
             key={i}
             className={`h-4 w-4 rounded-full transition-all duration-200 ${
-              isAuthenticating ? 'animate-pulse bg-primary/50' :
-              passcode.length > i ? 'bg-primary' : 'bg-muted'
+              isAuthenticating
+                ? "animate-pulse bg-primary/50"
+                : passcode.length > i
+                ? "bg-primary"
+                : "bg-muted"
             }`}
           />
         ))}
       </div>
-      
+
       {/* Loading indicator */}
       {isAuthenticating && (
         <div className="absolute inset-0 flex items-center justify-center bg-background/50">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
       )}
-      
+
       {/* Number pad */}
       <div className="grid grid-cols-3 gap-4">
         {/* Numbers 1-9 */}
@@ -131,7 +138,6 @@ const PasscodeScreen = ({ onSubmit, isAuthenticating }: {
             {num}
           </NumPadButton>
         ))}
-        
         {/* Bottom row */}
         <div className="h-16 w-16" /> {/* Empty space */}
         <NumPadButton
@@ -148,19 +154,14 @@ const PasscodeScreen = ({ onSubmit, isAuthenticating }: {
           Delete
         </NumPadButton>
       </div>
-      
+
       {/* Error message */}
       {isAuthenticating && (
-        <p className="text-sm text-muted-foreground">
-          Verifying passcode...
-        </p>
+        <p className="text-sm text-muted-foreground">Verifying passcode...</p>
       )}
     </div>
   );
 };
-
-
-
 
 export default function HomePage() {
   const router = useRouter();
@@ -174,30 +175,29 @@ export default function HomePage() {
   };
 
   const handlePasscodeSubmit = async (code: string) => {
- 
     setIsAuthenticating(true);
     try {
-      const response = await fetch('/api/patient/admin', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ passcode: code })
+      const response = await fetch("/api/patient/admin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ passcode: code }),
       });
-      
+
       const data: AuthResponse = await response.json();
-      
+
       if (data.success && data.user) {
         if (data.user) {
           setIsAdmin(true);
           toast.success(`Welcome to Admin Dashboard, ${data.user.name}`);
         } else {
-          toast.error('Access denied. Admin privileges required.');
+          toast.error("Access denied. Admin privileges required.");
         }
       } else {
-        toast.error(data.error || 'Invalid passcode');
+        toast.error(data.error || "Invalid passcode");
       }
     } catch (error) {
-      console.error('Authorization failed:', error);
-      toast.error('Authentication failed. Please try again.');
+      console.error("Authorization failed:", error);
+      toast.error("Authentication failed. Please try again.");
     } finally {
       setIsAuthenticating(false);
     }
@@ -207,15 +207,9 @@ export default function HomePage() {
     <>
       <div className="h-full bg-background p-4 w-full max-w-full">
         <div defaultValue="chats" className="w-full max-w-3xl mx-auto">
-        
-          
-
-  
-              <AdminScreen  />
-     
+          <AdminScreen />
         </div>
       </div>
-    
     </>
   );
 }
