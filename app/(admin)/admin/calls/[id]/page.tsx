@@ -70,7 +70,7 @@ export default function CallDetailsPage() {
             <div className="flex-1 flex flex-row md:flex-row items-center gap-6">
               <div className="relative">
                 <Image
-                  src={call?.patientProfilePicture || "/default-avatar.png"}
+                  src={call?.profilePicture || "/default-avatar.png"}
                   alt={call?.patientName || "Patient"}
                   width={80}
                   height={80}

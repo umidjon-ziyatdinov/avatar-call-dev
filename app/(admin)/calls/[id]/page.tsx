@@ -57,7 +57,7 @@ const { data:call, error, isLoading } = useSWR(`/api/calls/${id}`, fetcher);
             <div className="flex-1 flex flex-row md:flex-row items-center gap-6">
               <div className="relative">
               <Image
-                  src={call?.patientProfilePicture || ""}
+                  src={call?.profilePicture || ""}
                   alt={call?.patientName || "Patient"}
                   width={80}
                   height={80}

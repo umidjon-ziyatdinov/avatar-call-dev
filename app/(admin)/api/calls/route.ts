@@ -1,5 +1,5 @@
 import { auth } from "@/app/(auth)/auth";
-import { createNewCall, getAllCallsByUserId, getCallByUserAndAvatarId } from "@/lib/db/queries";
+import { createNewCall, getAllCalls, getAllCallsByUserId, getAllCallsForAdmin, getCallByUserAndAvatarId, getModeratorCalls } from "@/lib/db/queries";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -40,12 +40,24 @@ export async function GET(request: Request) {
                     total: calls.length
                 });
             }
-            const calls = await getAllCallsByUserId(session.user.id);
-            return NextResponse.json({
-                success: true,
-                data: calls,
-                total: calls.length
-            });
+
+            if (session.user.role === 'admin') {
+                const allCalls = await getAllCallsForAdmin();
+                return NextResponse.json({
+                    success: true,
+                    data: allCalls,
+                    total: allCalls.length
+                });
+            } else {
+
+                const calls = await getModeratorCalls({ userId: session.user.id });
+                return NextResponse.json({
+                    success: true,
+                    data: calls,
+                    total: calls.length
+                });
+            }
+
 
             // 4. Transform and sort calls if needed
             // const processedCalls = calls

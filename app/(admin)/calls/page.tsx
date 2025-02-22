@@ -330,14 +330,14 @@ export default function CallHistory() {
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-full overflow-hidden">
                           <img 
-                            src={call.userProfilePicture || "/api/placeholder/32/32"} 
-                            alt={call.userName}
+                            src={call.patientProfilePicture || "/api/placeholder/32/32"} 
+                            alt={call.patientName}
                             className="w-full h-full object-cover"
                           />
                         </div>
                         <div className="flex flex-col">
-                          <span className="font-medium">{call.userName}</span>
-                          <span className="text-sm text-gray-500">{call.userEmail}</span>
+                          <span className="font-medium">{call.patientName}</span>
+                          <span className="text-sm text-gray-500">{call.patientEmail}</span>
                         </div>
                       </div>
                     </TableCell>

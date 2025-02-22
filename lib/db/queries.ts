@@ -509,7 +509,7 @@ export async function getCallByUserAndAvatarId({ id, avatarId }: { id: string, a
     throw new Error('Failed to get call');
   }
 }
-export async function getAllCallsByUserId(id: string) {
+export async function getAllCallsForAdmin() {
   try {
     const calls = await db.select({
       id: call.id,
@@ -528,11 +528,21 @@ export async function getAllCallsByUserId(id: string) {
       metadata: call.metadata,
       analysis: call.analysis,
       prompt: call.prompt,
+      patientName: patient.name,
+      patientEmail: patient.email,
+      patientAge: patient.age,
+      patientSex: patient.sex,
+      patientLocation: patient.location,
+      patientEducation: patient.education,
+      patientWork: patient.work,
+
+      patientProfilePicture: patient.profilePicture,
+      patientCreatedAt: patient.createdAt,
       // Avatar fields
       avatarName: avatar.name,
       avatarRole: avatar.role,
       avatarImage: avatar.avatarImage
-    }).from(call).leftJoin(avatar, eq(call.avatarId, avatar.id)).where(eq(call.userId, id));
+    }).from(call).leftJoin(avatar, eq(call.avatarId, avatar.id)).leftJoin(patient, eq(call.userId, patient.id));
     return calls;
   } catch (error) {
     console.error('Error getting all avatars:', error);
@@ -545,6 +555,16 @@ export async function getAllAvatars() {
   try {
     const avatars = await db.select().from(avatar);
     return avatars;
+  } catch (error) {
+    console.error('Error getting all avatars:', error);
+    throw new Error('Failed to get all avatars');
+  }
+}
+
+export async function getAllCalls() {
+  try {
+    const calls = await db.select().from(call);
+    return calls;
   } catch (error) {
     console.error('Error getting all avatars:', error);
     throw new Error('Failed to get all avatars');
