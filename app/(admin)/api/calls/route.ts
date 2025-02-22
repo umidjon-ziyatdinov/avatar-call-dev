@@ -1,12 +1,13 @@
-// app/api/calls/route.ts
-
 import { auth } from "@/app/(auth)/auth";
 import { createNewCall, getAllCalls, getAllCallsForAdmin, getCallByUserAndAvatarId, getModeratorCalls } from "@/lib/db/queries";
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
+
+;
 export async function GET(request: Request) {
     try {
-        // 1. Authenticate moderator
+        // 1. Authenticate user
         const session = await auth();
         if (!session?.user?.id) {
             return new NextResponse(
@@ -73,22 +74,16 @@ export async function GET(request: Request) {
         } catch (dbError) {
             console.error('Database error:', dbError);
             return new NextResponse(
-                JSON.stringify({ error: 'Unauthorized. Moderator access required.' }),
-                { status: 403 }
+                JSON.stringify({ error: 'Failed to fetch call history' }),
+                { status: 500 }
             );
         }
 
-        // 2. Get calls for all patients of this moderator
-        const calls = await getAllCallsByModeratorId(session.user.id);
-        
-        return NextResponse.json({
-            success: true,
-            data: calls,
-            total: calls.length
-        });
-
     } catch (error) {
+        // Log the full error for debugging
         console.error('Unexpected error in GET /api/calls:', error);
+
+        // Return a safe error response
         return new NextResponse(
             JSON.stringify({
                 error: 'An unexpected error occurred',
