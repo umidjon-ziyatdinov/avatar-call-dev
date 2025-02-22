@@ -183,7 +183,7 @@ export const call = pgTable('Call', {
   duration: integer('duration'), // in seconds
 
   // Relationships
-  userId: uuid('userId').references(() => user.id).notNull(),
+  userId: uuid('userId').references(() => patient.id).notNull(),
   avatarId: uuid('avatarId').references(() => avatar.id).notNull(),
 
   // Call details

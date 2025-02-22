@@ -921,6 +921,17 @@ export async function getModeratorCalls(filters: CallFilters = {}) {
         userProfilePicture: user.profilePicture,
         userCreatedAt: user.createdAt,
         userIsActive: user.isActive,
+        // Patient details
+        patientId: patient.id,
+        patientName: patient.name,
+        patientEmail: patient.email,
+        patientAge: patient.age,
+        patientSex: patient.sex,
+        patientLocation: patient.location,
+        patientEducation: patient.education,
+        patientWork: patient.work,
+        patientProfilePicture: patient.profilePicture,
+        patientCreatedAt: patient.createdAt,
         // Avatar details
         avatarId: avatar.id,
         avatarName: avatar.name,
@@ -936,15 +947,13 @@ export async function getModeratorCalls(filters: CallFilters = {}) {
         avatarOpenaiModel: avatar.openaiModel
       })
       .from(call)
-      .innerJoin(user, eq(call.userId, user.id))
+      .innerJoin(patient, eq(call.userId, patient.id))
+      .innerJoin(user, eq(patient.userId, user.id))
       .innerJoin(avatar, eq(call.avatarId, avatar.id))
       .where(
         and(
-
-          userId ? eq(call.userId, userId) : undefined,
-
+          userId ? eq(user.id, userId) : undefined, // Changed to filter on user.id
           avatarId ? eq(call.avatarId, avatarId) : undefined,
-
           status ? eq(call.status, status as "active" | "completed" | "failed" | "missed") : undefined,
           // Date range filter
           startDate ? sql`DATE(${call.createdAt}) >= ${startDate}` : undefined,
@@ -956,6 +965,8 @@ export async function getModeratorCalls(filters: CallFilters = {}) {
             ? or(
               ilike(user.name, `%${search}%`),
               ilike(user.email, `%${search}%`),
+              ilike(patient.name, `%${search}%`),
+              ilike(patient.email, `%${search}%`),
               ilike(avatar.name, `%${search}%`),
               ilike(avatar.role, `%${search}%`)
             )
@@ -966,7 +977,6 @@ export async function getModeratorCalls(filters: CallFilters = {}) {
 
     const calls = await query;
     return calls;
-
   } catch (error) {
     console.error('Error in getCalls:', error);
     throw new Error('Failed to fetch calls');
