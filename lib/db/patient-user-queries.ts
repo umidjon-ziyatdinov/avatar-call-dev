@@ -40,6 +40,7 @@ export async function createPatientWithUser(data: {
         role: 'user',
         profilePicture: data.profilePicture || '',
         isActive: true,
+        passcode: 1234, // You might want to generate a random passcode or take it from the request
         createdAt: new Date(),
         updatedAt: new Date()
       })
@@ -317,7 +318,7 @@ export async function getPatientById(id: string) {
       .leftJoin(user, eq(patient.email, user.email))
       .where(eq(patient.id, id))
       .limit(1);
-    
+
     return result[0] || null;
   } catch (error) {
     console.error('Error getting patient by ID:', error);
@@ -359,58 +360,58 @@ export async function filterPatients({
 
     const query = conditions.length > 0
       ? db
-          .select({
-            id: patient.id,
-            name: patient.name,
-            email: patient.email,
-            about: patient.about,
-            age: patient.age,
-            sex: patient.sex,
-            dateOfBirth: patient.dateOfBirth,
-            location: patient.location,
-            education: patient.education,
-            work: patient.work,
-            profilePicture: patient.profilePicture,
-            fallRisk: patient.fallRisk,
-            promptAnswers: patient.promptAnswers,
-            likes: patient.likes,
-            dislikes: patient.dislikes,
-            symptoms: patient.symptoms,
-            createdAt: patient.createdAt,
-            updatedAt: patient.updatedAt,
-            userId: patient.userId,
-            userRole: user.role,
-            userIsActive: user.isActive
-          })
-          .from(patient)
-          .leftJoin(user, eq(patient.email, user.email))
-          .where(and(...conditions))
+        .select({
+          id: patient.id,
+          name: patient.name,
+          email: patient.email,
+          about: patient.about,
+          age: patient.age,
+          sex: patient.sex,
+          dateOfBirth: patient.dateOfBirth,
+          location: patient.location,
+          education: patient.education,
+          work: patient.work,
+          profilePicture: patient.profilePicture,
+          fallRisk: patient.fallRisk,
+          promptAnswers: patient.promptAnswers,
+          likes: patient.likes,
+          dislikes: patient.dislikes,
+          symptoms: patient.symptoms,
+          createdAt: patient.createdAt,
+          updatedAt: patient.updatedAt,
+          userId: patient.userId,
+          userRole: user.role,
+          userIsActive: user.isActive
+        })
+        .from(patient)
+        .leftJoin(user, eq(patient.email, user.email))
+        .where(and(...conditions))
       : db
-          .select({
-            id: patient.id,
-            name: patient.name,
-            email: patient.email,
-            about: patient.about,
-            age: patient.age,
-            sex: patient.sex,
-            dateOfBirth: patient.dateOfBirth,
-            location: patient.location,
-            education: patient.education,
-            work: patient.work,
-            profilePicture: patient.profilePicture,
-            fallRisk: patient.fallRisk,
-            promptAnswers: patient.promptAnswers,
-            likes: patient.likes,
-            dislikes: patient.dislikes,
-            symptoms: patient.symptoms,
-            createdAt: patient.createdAt,
-            updatedAt: patient.updatedAt,
-            userId: patient.userId,
-            userRole: user.role,
-            userIsActive: user.isActive
-          })
-          .from(patient)
-          .leftJoin(user, eq(patient.email, user.email));
+        .select({
+          id: patient.id,
+          name: patient.name,
+          email: patient.email,
+          about: patient.about,
+          age: patient.age,
+          sex: patient.sex,
+          dateOfBirth: patient.dateOfBirth,
+          location: patient.location,
+          education: patient.education,
+          work: patient.work,
+          profilePicture: patient.profilePicture,
+          fallRisk: patient.fallRisk,
+          promptAnswers: patient.promptAnswers,
+          likes: patient.likes,
+          dislikes: patient.dislikes,
+          symptoms: patient.symptoms,
+          createdAt: patient.createdAt,
+          updatedAt: patient.updatedAt,
+          userId: patient.userId,
+          userRole: user.role,
+          userIsActive: user.isActive
+        })
+        .from(patient)
+        .leftJoin(user, eq(patient.email, user.email));
 
     return await query;
   } catch (error) {
