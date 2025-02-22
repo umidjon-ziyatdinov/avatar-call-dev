@@ -1,5 +1,11 @@
 
 "use client";
+import React, { useState } from 'react';
+
+import AdminScreen from './components/AdminScreen';
+
+
+
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { User2, Shield, Clock, Settings, Loader2 } from "lucide-react";
