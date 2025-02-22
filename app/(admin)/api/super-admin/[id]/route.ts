@@ -2,11 +2,11 @@
 import { NextResponse } from 'next/server';
 import { put } from '@vercel/blob';
 import * as bcrypt from 'bcrypt-ts';
-import { 
-  getAdminById, 
-  updateAdmin, 
-  deleteAdmin, 
-  toggleAdminStatus 
+import {
+  getAdminById,
+  updateAdmin,
+  deleteAdmin,
+  toggleAdminStatus
 } from '@/lib/db/admin-queries';
 
 interface RouteParams {
@@ -16,9 +16,11 @@ interface RouteParams {
 }
 
 // GET /api/super-admin/[id]
-export async function GET(request: Request, { params }: RouteParams) {
+export async function GET(request: Request, params: Promise<{ id: string }>
+) {
   try {
-    const admin = await getAdminById(params.id);
+    const { id } = await params;
+    const admin = await getAdminById(id);
     if (!admin) {
       return NextResponse.json(
         { error: 'Admin not found' },
@@ -39,14 +41,16 @@ export async function GET(request: Request, { params }: RouteParams) {
 }
 
 // PATCH /api/super-admin/[id]
-export async function PATCH(request: Request, { params }: RouteParams) {
+export async function PATCH(request: Request, params: Promise<{ id: string }>
+) {
   try {
+    const { id } = await params;
     const formData = await request.formData();
 
     // Handle status toggle
     const isActive = formData.get('isActive');
     if (isActive !== null) {
-      const updatedAdmin = await toggleAdminStatus(params.id, isActive === 'true');
+      const updatedAdmin = await toggleAdminStatus(id, isActive === 'true');
       const { password: _, ...adminWithoutPassword } = updatedAdmin;
       return NextResponse.json(adminWithoutPassword);
     }
@@ -84,7 +88,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
       updateData.profilePicture = profilePictureUrl;
     }
 
-    const updatedAdmin = await updateAdmin(params.id, updateData);
+    const updatedAdmin = await updateAdmin(id, updateData);
     if (!updatedAdmin) {
       return NextResponse.json(
         { error: 'Admin not found' },
