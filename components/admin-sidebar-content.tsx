@@ -27,7 +27,7 @@ type SidebarItemType = {
   icon: React.ReactNode;
 };
 
-const ModeratorSidebarGroups = [
+const AdminSidebarGroups = [
   {
     items: [
       {
@@ -69,19 +69,19 @@ const ModeratorSidebarGroups = [
 
       {
         label: "Call Logs",
-        href: "/calls",
+        href: "/admin/calls",
         icon: <MessagesSquareIcon className="w-4 h-4" />,
       },
     ],
   },
 ];
 
-const AdminSideBarGroups = [
+const ModeratorSidebarGroups = [
   {
     items: [
       {
         label: "Dashboard",
-        href: "/dashboard",
+        href: "/",
         icon: <LayoutDashboardIcon className="w-4 h-4" />,
       },
     ],
@@ -100,13 +100,13 @@ const AdminSideBarGroups = [
     groupName: "Management",
     items: [
       {
-        label: "Users",
-        href: "/users",
+        label: "Patients",
+        href: "/patient",
         icon: <UsersIcon className="w-4 h-4" />,
       },
       {
         label: "Call History",
-        href: "/admin/calls",
+        href: "/calls",
         icon: <MessagesSquareIcon className="w-4 h-4" />,
       },
     ],
@@ -150,7 +150,7 @@ export function AdminSidebarContent({
   const { setOpenMobile } = useSidebar();
   const pathname = usePathname();
   const navItems =
-    role === "admin" ? AdminSideBarGroups : ModeratorSidebarGroups;
+    role === "admin" ? AdminSidebarGroups : ModeratorSidebarGroups;
 
   return (
     <>
