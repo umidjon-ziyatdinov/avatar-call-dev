@@ -309,7 +309,7 @@ export default function CallHistory() {
                   <TableRow
                     key={call.callId}
                     className="cursor-pointer hover:bg-accent"
-                    onClick={() => handleRowClick(call.callId)}
+                    onClick={() => handleRowClick(call.id)}
                   >
                     <TableCell>
                       <div className="flex items-center gap-3">

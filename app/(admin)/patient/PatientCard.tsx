@@ -24,14 +24,14 @@ const PatientCard = ({patient}: {patient: Patient}) => {
   };
 
   return ( <TooltipProvider key={patient?.id}>
-      <Card className="max-w-lg mx-auto bg-white shadow-lg">
+      <Card className="max-w-2xl mx-auto bg-white shadow-lg">
         <CardContent className="p-6">
           <div className="flex items-start gap-6">
             <div className="flex-shrink-0">
               <Image
                 src={patient.profilePicture || "/avatar-placeholder.png"}
                 alt={patient.name}
-                className="rounded-lg object-cover"
+                className=" size-[128px] rounded-lg object-cover"
                 width={128}
                 height={128}
               />
