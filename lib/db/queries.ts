@@ -972,3 +972,23 @@ export async function getModeratorCalls(filters: CallFilters = {}) {
     throw new Error('Failed to fetch calls');
   }
 }
+
+
+export async function getUserAvatars(userId: string) {
+  try {
+    const avatars = await db
+      .select()
+      .from(avatar)
+      .where(
+        or(
+          eq(avatar.userId, userId),
+          isNull(avatar.userId) // Include public avatars
+        )
+      );
+    
+    return avatars;
+  } catch (error) {
+    console.error('Error getting user avatars:', error);
+    throw new Error('Failed to get user avatars');
+  }
+}

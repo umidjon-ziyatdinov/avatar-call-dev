@@ -7,7 +7,8 @@ import {
     createAvatar,
     updateAvatar,
     getAllAvatars,
-    createPatientAvatar
+    createPatientAvatar,
+    getUserAvatars
 } from '@/lib/db/queries';
 import { Avatar, avatar } from '@/lib/db/schema';
 import { NextResponse } from 'next/server';
@@ -259,35 +260,38 @@ The face generation has been queued and will be processed shortly. You can:
 }
 
 export async function GET(request: Request) {
-    const session = await auth();
-
-    if (!session || !session.user) {
-        return new Response('Unauthorized', { status: 401 });
-    }
-
     try {
-        const { searchParams } = new URL(request.url);
-        const id = searchParams.get('id');
-
-        if (id) {
-            const avatar = await getAvatarById({ id });
-            if (!avatar) {
-                return new Response('Avatar not found', { status: 404 });
-            }
-            return new Response(JSON.stringify(avatar), {
-                headers: { 'Content-Type': 'application/json' },
-            });
+      const session = await auth();
+      if (!session?.user?.id) {
+        return new Response('Unauthorized', { status: 401 });
+      }
+  
+      const { searchParams } = new URL(request.url);
+      const id = searchParams.get('id');
+  
+      if (id) {
+        const avatar = await getAvatarById({ id });
+        if (!avatar) {
+          return new Response('Avatar not found', { status: 404 });
         }
-
-        const avatars = await getAllAvatars();
-        return new Response(JSON.stringify(avatars), {
-            headers: { 'Content-Type': 'application/json' },
+        // Check if user has access to this avatar
+        if (avatar.userId && avatar.userId !== session.user.id) {
+          return new Response('Unauthorized', { status: 403 });
+        }
+        return new Response(JSON.stringify(avatar), {
+          headers: { 'Content-Type': 'application/json' },
         });
+      }
+  
+      const avatars = await getUserAvatars(session.user.id);
+      return new Response(JSON.stringify(avatars), {
+        headers: { 'Content-Type': 'application/json' },
+      });
     } catch (error) {
-        console.error('Failed to fetch avatars:', error);
-        return new Response('Failed to fetch avatars', { status: 500 });
+      console.error('Failed to fetch avatars:', error);
+      return new Response('Failed to fetch avatars', { status: 500 });
     }
-}
+  }
 
 // API: PUT endpoint modification
 export async function PUT(request: Request) {
