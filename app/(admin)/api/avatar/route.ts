@@ -194,7 +194,7 @@ export async function POST(request: Request) {
         console.log('saving patients', parsedData?.patientIds)
 
         if (parsedData?.patientIds) {
-            parsedData.patientId?.map((id) => {
+            parsedData.patientId?.map(async (id) => {
                 const patientAvatar = await createPatientAvatar({
                     userId: session.user.id,
                     patientId: id,
