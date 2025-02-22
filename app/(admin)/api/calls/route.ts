@@ -1,5 +1,5 @@
 import { auth } from "@/app/(auth)/auth";
-import { createNewCall, getAllCalls, getAllCallsByUserId, getAllCallsForAdmin, getCallByUserAndAvatarId, getModeratorCalls } from "@/lib/db/queries";
+import { createNewCall, getAllCalls, getAllCallsForAdmin, getCallByUserAndAvatarId, getModeratorCalls } from "@/lib/db/queries";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -70,11 +70,6 @@ export async function GET(request: Request) {
             //     }));
 
             // 5. Return successful response
-            return NextResponse.json({
-                success: true,
-                data: calls,
-                total: calls.length
-            });
 
         } catch (dbError) {
             console.error('Database error:', dbError);
