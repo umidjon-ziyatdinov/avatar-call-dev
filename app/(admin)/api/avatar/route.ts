@@ -27,6 +27,15 @@ interface SimliResponse {
     error?: string;
 }
 
+// Configure the API route options
+export const config = {
+    api: {
+        bodyParser: {
+            sizeLimit: '20mb'
+        },
+        responseLimit: '20mb'
+    }
+};
 
 async function generateCharacter({ name, image }: { name: string; image: File }): Promise<GenerateCharacterResult> {
     try {
@@ -182,8 +191,8 @@ export async function POST(request: Request) {
                 status: "error"
             }, { status: 400 });
         }
-        const { searchParams } = new URL(req.url);
-        const isPublic = searchParams.get('public');
+
+        const isPublic = session.user.role === 'admin'
         // Create avatar only if face generation was successful
         const newAvatar = await createAvatar({
             ...validatedData,

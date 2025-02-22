@@ -3,6 +3,15 @@ import { getPatientById, updatePatient } from "@/lib/db/queries";
 import { put } from "@vercel/blob";
 import * as bcrypt from 'bcrypt-ts';
 
+// Configure the API route options
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '20mb'
+    },
+    responseLimit: '20mb'
+  }
+};
 export async function PUT(request: Request,
   { params }: {
     params: Promise<{ id: string }>
