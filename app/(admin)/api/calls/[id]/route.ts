@@ -5,12 +5,14 @@ import { NextResponse } from "next/server";
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: {
+    params: Promise<{ id: string }>
+  }
 ) {
   try {
     // 1. Wait for params to be available
-    const callId = await params.id;
-    
+    const { id } = await params;
+
     // 2. Authenticate moderator
     const session = await auth();
     if (!session?.user?.id) {
@@ -30,7 +32,7 @@ export async function GET(
 
     // 4. Get call details with moderator verification
     const call = await getCallByIdForModerator({
-      callId,
+      callId: id,
       moderatorId: session.user.id
     });
 
