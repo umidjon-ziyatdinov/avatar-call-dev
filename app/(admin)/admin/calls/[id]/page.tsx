@@ -180,12 +180,12 @@ export default function CallDetailsPage() {
       </Card>
 
       {/* Alert Section */}
-      {call.analysis?.is_flagged && (
+      {call?.analysis?.is_flagged && (
         <Alert variant="destructive">
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>Attention Required</AlertTitle>
           <AlertDescription>
-            {call?.analysis.alert_summary?.description}
+            {call?.analysis?.alert_summary?.description}
           </AlertDescription>
         </Alert>
       )}

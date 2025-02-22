@@ -1015,7 +1015,7 @@ export async function getUserAvatars(userId: string) {
           isNull(avatar.userId) // Include public avatars
         )
       );
-    
+
     return avatars;
   } catch (error) {
     console.error('Error getting user avatars:', error);

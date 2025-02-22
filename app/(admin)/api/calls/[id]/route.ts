@@ -1,6 +1,7 @@
 // app/api/calls/[id]/route.ts
 import { auth } from "@/app/(auth)/auth";
 import { getCallByIdForModerator } from "@/lib/db/call-queries";
+import { getCallById } from "@/lib/db/queries";
 import { NextResponse } from "next/server";
 
 export async function GET(
@@ -22,14 +23,14 @@ export async function GET(
       );
     }
 
-    // 3. Check if user is a moderator
-    if (session.user.role !== 'moderator') {
-      return NextResponse.json(
-        { error: 'Unauthorized. Moderator access required.' },
-        { status: 403 }
-      );
-    }
 
+    if (session.user.role === 'admin') {
+      const call = await getCallById({
+        id,
+
+      });
+      return NextResponse.json(call);
+    }
     // 4. Get call details with moderator verification
     const call = await getCallByIdForModerator({
       callId: id,
