@@ -52,7 +52,7 @@ const { data:call, error, isLoading } = useSWR(`/api/calls/${id}`, fetcher);
           <CardTitle>Call Participants</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col m`d:flex-row items-center justify-between gap-6">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             {/* User Details */}
             <div className="flex-1 flex flex-row md:flex-row items-center gap-6">
               <div className="relative">
@@ -137,7 +137,7 @@ const { data:call, error, isLoading } = useSWR(`/api/calls/${id}`, fetcher);
         </CardContent>
       </Card>
       {/* Recording Section */}
-      <Card>
+      {/* <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <PlayCircle className="h-5 w-5" />
@@ -153,7 +153,7 @@ const { data:call, error, isLoading } = useSWR(`/api/calls/${id}`, fetcher);
             Your browser does not support the audio element.
           </audio>
         </CardContent>
-      </Card>
+      </Card> */}
 
       {/* Alert Section */}
       {call.analysis?.is_flagged && (
@@ -202,7 +202,7 @@ const { data:call, error, isLoading } = useSWR(`/api/calls/${id}`, fetcher);
           </div>
 
           {/* Conversation Metrics */}
-          <div>
+          {/* <div>
             <h3 className="font-semibold mb-2">Conversation Metrics</h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="p-4 bg-muted rounded-lg">
@@ -230,7 +230,7 @@ const { data:call, error, isLoading } = useSWR(`/api/calls/${id}`, fetcher);
                 </div>
               </div>
             </div>
-          </div>
+          </div> */}
         </CardContent>
       </Card>
     </div>
