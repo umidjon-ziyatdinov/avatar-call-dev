@@ -6,7 +6,8 @@ import {
     getAvatarById,
     createAvatar,
     updateAvatar,
-    getAllAvatars
+    getAllAvatars,
+    createPatientAvatar
 } from '@/lib/db/queries';
 import { Avatar, avatar } from '@/lib/db/schema';
 import { NextResponse } from 'next/server';
@@ -145,7 +146,16 @@ export async function POST(request: Request) {
                 );
             }
         }
-
+        if (parsedData.patientIds) {
+            try {
+                parsedData.patientIds = JSON.parse(parsedData.patientIds);
+            } catch {
+                return NextResponse.json(
+                    { error: "Invalid personality JSON." },
+                    { status: 400 }
+                );
+            }
+        }
         const data = {
             ...parsedData,
             avatarImage: avatarUrl,
@@ -181,6 +191,19 @@ export async function POST(request: Request) {
             simliCharacterId: simliResponse.simliCharacterId,
             userId: isPublic ? null : session.user.id,
         });
+        console.log('saving patients', parsedData?.patientIds)
+
+        if (parsedData?.patientIds) {
+            parsedData.patientId?.map((id) => {
+                const patientAvatar = await createPatientAvatar({
+                    userId: session.user.id,
+                    patientId: id,
+                    avatarId: newAvatarId.id,
+                    status: 'inActive'
+                })
+            })
+        }
+
 
         // Prepare response with detailed information
         const response = {
