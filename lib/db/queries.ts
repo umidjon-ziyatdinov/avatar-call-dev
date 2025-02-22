@@ -919,7 +919,7 @@ export async function getModeratorCalls(filters: CallFilters = {}) {
     const query = db
       .select({
         // Call details
-        callId: call.id,
+        id: call.id,
         duration: call.duration,
         status: call.status,
         createdAt: call.createdAt,

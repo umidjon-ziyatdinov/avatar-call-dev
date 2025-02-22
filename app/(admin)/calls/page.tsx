@@ -310,7 +310,7 @@ export default function CallHistory() {
                   ))
                 ) : calls?.map((call) => (
                   <TableRow
-                    key={call.callId}
+                    key={call.id}
                     className="cursor-pointer hover:bg-accent"
                     onClick={() => handleRowClick(call?.id)}
                   >
