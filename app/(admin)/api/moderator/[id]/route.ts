@@ -17,8 +17,11 @@ interface RouteParams {
 }
 
 // GET /api/moderator/[id]
-export async function GET(request: Request, { params }: RouteParams) {
+export async function GET(request: Request, { params }: {
+  params: Promise<{ id: string }>
+}) {
   try {
+    const { id } = await params;
     const moderator = await getModeratorById(params.id);
     if (!moderator) {
       return NextResponse.json(
@@ -40,14 +43,16 @@ export async function GET(request: Request, { params }: RouteParams) {
 }
 
 // PATCH /api/moderator/[id]
-export async function PATCH(request: Request, { params }: RouteParams) {
+export async function PATCH(request: Request, { params }: {
+  params: Promise<{ id: string }>
+}) {
   try {
     const formData = await request.formData();
-
+    const { id } = await params;
     // Handle status toggle
     const isActive = formData.get('isActive');
     if (isActive !== null) {
-      const updatedModerator = await toggleModeratorStatus(params.id, isActive === 'true');
+      const updatedModerator = await toggleModeratorStatus(id, isActive === 'true');
       const { password: _, ...moderatorWithoutPassword } = updatedModerator;
       return NextResponse.json(moderatorWithoutPassword);
     }
@@ -106,9 +111,11 @@ export async function PATCH(request: Request, { params }: RouteParams) {
 }
 
 // DELETE /api/moderator/[id]
-export async function DELETE(request: Request, { params }: RouteParams) {
+export async function DELETE(request: Request, params: Promise<{ id: string }>
+) {
   try {
-    const deletedModerator = await deleteModerator(params.id);
+    const { id } = await params;
+    const deletedModerator = await deleteModerator(id);
     if (!deletedModerator) {
       return NextResponse.json(
         { error: 'Moderator not found' },
