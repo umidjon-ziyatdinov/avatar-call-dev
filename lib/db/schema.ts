@@ -84,6 +84,7 @@ export const patient = pgTable('Patient', {
   promptAnswers: json('promptAnswers').$type<Record<string, string>>().default({}),
   likes: text('likes').default(''),
   dislikes: text('dislikes').default(''),
+  onboadringComplete: boolean('onboarding_complete').notNull().default(true),
   symptoms: text('symptoms').default(''),
   avatar: text('avatar').default(''),
   createdAt: timestamp('createdAt', { mode: 'date' }).notNull().defaultNow(),
